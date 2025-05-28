@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cazador de Palabras LLM 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #e5e7eb; /* text-gray-200 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #gameContainer {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        canvas {
+            display: block;
+        }
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to pass through to canvas for controls */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .ui-panel {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            pointer-events: auto; /* Enable interaction for panels */
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            line-height: 1.5;
+        }
+        #wordListPanel {
+            max-height: 40%;
+            overflow-y: auto;
+        }
+        .word-item {
+            transition: all 0.3s ease;
+        }
+        .found {
+            text-decoration: line-through;
+            color: #4ade80; /* green-400 */
+            opacity: 0.7;
+        }
+        #messageBox {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(75, 85, 99, 0.9); /* bg-gray-600 with opacity */
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+            z-index: 100;
+            font-size: 1.25rem;
+            display: none; /* Hidden by default */
+            font-family: 'Press Start 2P', cursive;
+        }
+        #messageBox button {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        #messageBox button:hover {
+            background-color: #2563eb; /* bg-blue-600 */
+        }
+
+        /* Touch controls styling */
+        .touch-controls-container {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            height: 120px; /* Adjust as needed */
+            display: none; /* Hidden by default, shown on touch devices */
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: none; /* Container itself doesn't block */
+            z-index: 50;
+        }
+
+        .touch-joystick {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto; /* Joysticks are interactive */
+        }
+
+        .joystick-nub {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #9ca3af; /* text-gray-400 */
+            text-align: center;
+        }
+
+        @media (max-width: 768px) { /* Show touch controls on smaller screens */
+            .touch-controls-container {
+                display: flex;
+            }
+            #instructions {
+                font-size: 0.6rem;
+                bottom: 140px; /* Adjust if controls overlap */
+            }
+            .ui-panel {
+                font-size: 0.6rem;
+            }
+             #messageBox {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+            #messageBox button {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="uiOverlay">
+            <div class="flex justify-between w-full">
+                <div id="timerPanel" class="ui-panel">
+                    Tiempo: <span id="timer">0s</span>
+                </div>
+                <div id="recordPanel" class="ui-panel">
+                    Récord: <span id="bestTime">--</span>
+                </div>
+            </div>
+            <div id="wordListPanel" class="ui-panel self-start mt-4 ml-auto md:ml-0 md:mr-auto" style="max-width: 200px;">
+                <h3 class="font-bold mb-2 text-sm">Palabras a Encontrar:</h3>
+                <ul id="wordList"></ul>
+            </div>
+            <div id="instructions" class="hidden md:block">
+                Usa WASD/Flechas para moverte, Ratón para mirar. Clic para interactuar (si es necesario).
+                Móvil: Joysticks en pantalla.
+            </div>
+        </div>
+        <div id="messageBox">
+            <p id="messageText"></p>
+            <button id="messageButton">OK</button>
+        </div>
+        <div class="touch-controls-container" id="touchControls">
+            <div id="joystickMove" class="touch-joystick">
+                <div class="joystick-nub"></div>
+            </div>
+            <div id="joystickLook" class="touch-joystick">
+                <div class="joystick-nub"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- THREE.JS AND GAME LOGIC ---
+        let scene, camera, renderer;
+        let playerVelocity = new THREE.Vector3();
+        let playerSpeed = 20.0; // Units per second
+        let lookSpeed = 0.003;
+
+        const wordsToFind = ["CONEXION", "NODO", "PESO", "CAPA", "FUNCION", "ACTIVACION", "PERCEPTRON", "DESCENSO", "GRADIENTE", "ERROR", "MODELO", "VECTOR"];
+        let foundWords = [];
+        let wordObjects = []; // Stores { mesh: THREE.Sprite, text: string, originalColor: THREE.Color }
+
+        let gameStarted = false;
+        let startTime, timerInterval;
+        let bestTime = localStorage.getItem('llmWordHunterBestTime') || Infinity;
+
+        const clock = new THREE.Clock();
+
+        // Movement states
+        const moveState = {
+            forward: 0, // 1 for forward, -1 for backward
+            right: 0,   // 1 for right, -1 for left
+            up: 0       // 1 for up, -1 for down (optional for this game, but good for 3D navigation)
+        };
+        let euler = new THREE.Euler(0, 0, 0, 'YXZ'); // For mouse controls
+        let pitch = 0;
+        let yaw = 0;
+
+        // Touch control states
+        const touchState = {
+            moveX: 0, moveY: 0, // For left joystick (-1 to 1)
+            lookX: 0, lookY: 0  // For right joystick (-1 to 1)
+        };
+        let moveJoystick, lookJoystick;
+        let moveNub, lookNub;
+        let moveTouchId = -1, lookTouchId = -1;
+        let moveJoystickCenter = { x: 0, y: 0 }, lookJoystickCenter = { x: 0, y: 0 };
+        const joystickRadius = 50; // Half of joystick width/height
+
+        // --- INITIALIZATION ---
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111827); // Dark blue/gray
+            scene.fog = new THREE.Fog(0x111827, 50, 150);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 200);
+            camera.position.set(0, 5, 10); // Start slightly elevated and back
+            camera.lookAt(0,0,0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('gameContainer').appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7);
+            scene.add(directionalLight);
+
+            // Ground (optional, for spatial reference)
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x374151, side: THREE.DoubleSide, visible: false }); // Invisible, but can cast/receive shadows if needed
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -10; // Place it below initial word spawn area
+            scene.add(ground);
+
+            // UI Setup
+            updateWordListUI();
+            updateBestTimeUI();
+            
+            showMessage("Cazador de Palabras LLM 3D", "Encuentra todas las palabras en el espacio 3D. ¡Intenta batir el récord!", "¡Empezar!", startGame);
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+
+            // Pointer Lock for mouse controls (Desktop)
+            renderer.domElement.addEventListener('click', () => {
+                if (!isTouchDevice() && !document.pointerLockElement && gameStarted) {
+                    renderer.domElement.requestPointerLock();
+                }
+            });
+            document.addEventListener('pointerlockchange', pointerLockChange, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            
+            // Touch Controls Setup
+            if (isTouchDevice()) {
+                document.getElementById('instructions').textContent = "Usa los joysticks virtuales para moverte y mirar.";
+                document.getElementById('touchControls').style.display = 'flex';
+                setupTouchControls();
+            } else {
+                 document.getElementById('instructions').classList.remove('hidden');
+            }
+        }
+        
+        function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0));
+        }
+
+        function setupTouchControls() {
+            moveJoystick = document.getElementById('joystickMove');
+            lookJoystick = document.getElementById('joystickLook');
+            moveNub = moveJoystick.querySelector('.joystick-nub');
+            lookNub = lookJoystick.querySelector('.joystick-nub');
+
+            moveJoystick.addEventListener('touchstart', handleTouchStart, false);
+            moveJoystick.addEventListener('touchmove', handleTouchMove, false);
+            moveJoystick.addEventListener('touchend', handleTouchEnd, false);
+            moveJoystick.addEventListener('touchcancel', handleTouchEnd, false);
+
+            lookJoystick.addEventListener('touchstart', handleTouchStart, false);
+            lookJoystick.addEventListener('touchmove', handleTouchMove, false);
+            lookJoystick.addEventListener('touchend', handleTouchEnd, false);
+            lookJoystick.addEventListener('touchcancel', handleTouchEnd, false);
+        }
+
+        function handleTouchStart(event) {
+            event.preventDefault();
+            const touches = event.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                if (event.currentTarget === moveJoystick && moveTouchId < 0) {
+                    moveTouchId = touch.identifier;
+                    const rect = moveJoystick.getBoundingClientRect();
+                    moveJoystickCenter.x = rect.left + rect.width / 2;
+                    moveJoystickCenter.y = rect.top + rect.height / 2;
+                    updateJoystick(touch, moveJoystickCenter, moveNub, 'move');
+                } else if (event.currentTarget === lookJoystick && lookTouchId < 0) {
+                    lookTouchId = touch.identifier;
+                    const rect = lookJoystick.getBoundingClientRect();
+                    lookJoystickCenter.x = rect.left + rect.width / 2;
+                    lookJoystickCenter.y = rect.top + rect.height / 2;
+                    updateJoystick(touch, lookJoystickCenter, lookNub, 'look');
+                }
+            }
+        }
+
+        function handleTouchMove(event) {
+            event.preventDefault();
+            const touches = event.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                if (touch.identifier === moveTouchId) {
+                    updateJoystick(touch, moveJoystickCenter, moveNub, 'move');
+                } else if (touch.identifier === lookTouchId) {
+                    updateJoystick(touch, lookJoystickCenter, lookNub, 'look');
+                }
+            }
+        }
+        
+        function updateJoystick(touch, center, nub, type) {
+            let dx = touch.clientX - center.x;
+            let dy = touch.clientY - center.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            const maxDistance = joystickRadius; // Max distance nub can move from center
+
+            if (distance > maxDistance) {
+                dx = (dx / distance) * maxDistance;
+                dy = (dy / distance) * maxDistance;
+            }
+            
+            nub.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            if (type === 'move') {
+                touchState.moveX = dx / maxDistance;
+                touchState.moveY = -dy / maxDistance; // Y is inverted for screen coords vs game coords
+            } else if (type === 'look') {
+                touchState.lookX = dx / maxDistance;
+                touchState.lookY = -dy / maxDistance;
+            }
+        }
+
+
+        function handleTouchEnd(event) {
+            event.preventDefault();
+            const touches = event.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                if (touch.identifier === moveTouchId) {
+                    moveTouchId = -1;
+                    touchState.moveX = 0;
+                    touchState.moveY = 0;
+                    moveNub.style.transform = `translate(0px, 0px)`;
+                } else if (touch.identifier === lookTouchId) {
+                    lookTouchId = -1;
+                    touchState.lookX = 0;
+                    touchState.lookY = 0;
+                    lookNub.style.transform = `translate(0px, 0px)`;
+                }
+            }
+        }
+
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            // Clear previous word objects if any
+            wordObjects.forEach(wo => scene.remove(wo.mesh));
+            wordObjects = [];
+            
+            foundWords = [];
+            createWordObjects();
+            updateWordListUI();
+
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0,0,0);
+            pitch = 0; // Reset camera orientation
+            yaw = 0;
+            euler.set(0,0,0, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+
+            gameStarted = true;
+            startTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimerUI, 1000);
+            updateTimerUI(); // Initial call
+
+            if (!isTouchDevice() && !document.pointerLockElement) {
+                 renderer.domElement.requestPointerLock();
+            }
+
+            if (!animationFrameId) { // Ensure animate loop is started
+                animate();
+            }
+        }
+
+        function createWordObjects() {
+            const spread = 80; // How far words can spread
+            const ySpread = 30; // Vertical spread
+            wordsToFind.forEach(text => {
+                const sprite = createTextSprite(text);
+                sprite.position.set(
+                    (Math.random() - 0.5) * spread,
+                    (Math.random() * ySpread) - (ySpread/4), // from -ySpread/4 to 3*ySpread/4
+                    (Math.random() - 0.5) * spread
+                );
+                scene.add(sprite);
+                wordObjects.push({ mesh: sprite, text: text, originalColor: sprite.material.color.clone() });
+            });
+        }
+
+        function createTextSprite(message) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const fontSize = 48; // Larger font size for clarity
+            context.font = `bold ${fontSize}px Arial`;
+            
+            const textWidth = context.measureText(message).width;
+            canvas.width = textWidth + 20; // Add some padding
+            canvas.height = fontSize + 20; // Add some padding
+
+            // Re-apply font after canvas resize (important!)
+            context.font = `bold ${fontSize}px Arial`;
+            context.fillStyle = 'rgba(255, 255, 255, 0.95)'; // White text
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(message, canvas.width / 2, canvas.height / 2);
+
+            // Glow effect (optional, simple version)
+            context.shadowColor = '#00ffff'; // Cyan glow
+            context.shadowBlur = 10;
+            // Re-draw text for glow to take effect underneath
+            context.fillText(message, canvas.width / 2, canvas.height / 2);
+            context.shadowBlur = 0; // Reset shadow for next draws if any
+
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, fog: false });
+            const sprite = new THREE.Sprite(material);
+            
+            // Scale sprite to be readable. Adjust these values as needed.
+            // The scale depends on your text size and desired visibility.
+            const spriteScale = 0.05 * textWidth; // Scale based on text width
+            sprite.scale.set(spriteScale, spriteScale * (canvas.height / canvas.width), 1.0);
+
+            return sprite;
+        }
+
+        function checkWordCollection() {
+            if (!gameStarted) return;
+
+            const collectionDistance = 5; // How close player needs to be
+            wordObjects.forEach(wordObj => {
+                if (!foundWords.includes(wordObj.text)) {
+                    if (camera.position.distanceTo(wordObj.mesh.position) < collectionDistance) {
+                        foundWords.push(wordObj.text);
+                        wordObj.mesh.material.color.setHex(0x00ff00); // Turn green
+                        wordObj.mesh.material.opacity = 0.5;
+                        // Optional: Make it shrink or fade out
+                        // scene.remove(wordObj.mesh); // Or just change appearance
+
+                        updateWordListUI();
+                        showMessageQuickly(`"${wordObj.text}" encontrada!`);
+
+                        if (foundWords.length === wordsToFind.length) {
+                            endGame();
+                        }
+                    } else {
+                         // Optional: reset color if player moves away from a non-collected word (if you had a hover effect)
+                        // wordObj.mesh.material.color.copy(wordObj.originalColor);
+                    }
+                }
+            });
+        }
+
+        function endGame() {
+            gameStarted = false;
+            clearInterval(timerInterval);
+            const timeTaken = (Date.now() - startTime) / 1000;
+
+            if (timeTaken < bestTime) {
+                bestTime = timeTaken;
+                localStorage.setItem('llmWordHunterBestTime', bestTime);
+                updateBestTimeUI();
+                showMessage("¡Nuevo Récord!", `Encontraste todas las palabras en ${timeTaken.toFixed(2)}s.`, "Jugar de Nuevo", startGame);
+            } else {
+                showMessage("¡Ganaste!", `Encontraste todas las palabras en ${timeTaken.toFixed(2)}s.`, "Jugar de Nuevo", startGame);
+            }
+            
+            if (document.pointerLockElement) {
+                document.exitPointerLock();
+            }
+        }
+
+        // --- UI UPDATES ---
+        function updateWordListUI() {
+            const listElement = document.getElementById('wordList');
+            listElement.innerHTML = '';
+            wordsToFind.forEach(word => {
+                const listItem = document.createElement('li');
+                listItem.textContent = word;
+                listItem.className = 'word-item';
+                if (foundWords.includes(word)) {
+                    listItem.classList.add('found');
+                }
+                listElement.appendChild(listItem);
+            });
+        }
+
+        function updateTimerUI() {
+            if (!gameStarted) {
+                 document.getElementById('timer').textContent = `0s`;
+                 return;
+            }
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = `${elapsedTime}s`;
+        }
+
+        function updateBestTimeUI() {
+            document.getElementById('bestTime').textContent = bestTime === Infinity ? '--' : `${parseFloat(bestTime).toFixed(2)}s`;
+        }
+        
+        let messageTimeout;
+        function showMessage(title, text, buttonText = "OK", callback) {
+            const messageBox = document.getElementById('messageBox');
+            const messageText = document.getElementById('messageText');
+            const messageButton = document.getElementById('messageButton');
+
+            messageText.innerHTML = `<strong>${title}</strong><br>${text}`; // Use innerHTML to allow <br>
+            messageButton.textContent = buttonText;
+            
+            messageButton.onclick = () => {
+                messageBox.style.display = 'none';
+                if (callback) callback();
+            };
+            messageBox.style.display = 'flex';
+        }
+
+        function showMessageQuickly(text, duration = 2000) {
+            const tempMsgDiv = document.createElement('div');
+            tempMsgDiv.textContent = text;
+            tempMsgDiv.style.position = 'absolute';
+            tempMsgDiv.style.bottom = '20%';
+            tempMsgDiv.style.left = '50%';
+            tempMsgDiv.style.transform = 'translateX(-50%)';
+            tempMsgDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            tempMsgDiv.style.color = 'white';
+            tempMsgDiv.style.padding = '10px 20px';
+            tempMsgDiv.style.borderRadius = '5px';
+            tempMsgDiv.style.zIndex = '200';
+            tempMsgDiv.style.fontFamily = "'Press Start 2P', cursive";
+            tempMsgDiv.style.fontSize = "0.8rem";
+            document.getElementById('uiOverlay').appendChild(tempMsgDiv);
+
+            if (messageTimeout) clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                tempMsgDiv.remove();
+            }, duration);
+        }
+
+
+        // --- CONTROLS AND MOVEMENT ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onKeyDown(event) {
+            if (!gameStarted && (event.key === "Enter" || event.key === " ")) {
+                // Allow starting game with Enter/Space if message box is for starting
+                const messageBox = document.getElementById('messageBox');
+                if (messageBox.style.display === 'flex' && document.getElementById('messageButton').textContent.includes("Empezar")) {
+                    document.getElementById('messageButton').click();
+                }
+                return;
+            }
+            if (!gameStarted) return;
+
+            switch (event.key.toLowerCase()) {
+                case 'w': case 'arrowup': moveState.forward = 1; break;
+                case 's': case 'arrowdown': moveState.forward = -1; break;
+                case 'a': case 'arrowleft': moveState.right = -1; break;
+                case 'd': case 'arrowright': moveState.right = 1; break;
+                case ' ': case 'r': moveState.up = 1; break; // Space or R for Up
+                case 'shift': case 'f': moveState.up = -1; break; // Shift or F for Down
+            }
+        }
+
+        function onKeyUp(event) {
+            if (!gameStarted) return;
+            switch (event.key.toLowerCase()) {
+                case 'w': case 'arrowup': if (moveState.forward === 1) moveState.forward = 0; break;
+                case 's': case 'arrowdown': if (moveState.forward === -1) moveState.forward = 0; break;
+                case 'a': case 'arrowleft': if (moveState.right === -1) moveState.right = 0; break;
+                case 'd': case 'arrowright': if (moveState.right === 1) moveState.right = 0; break;
+                case ' ': case 'r': if (moveState.up === 1) moveState.up = 0; break;
+                case 'shift': case 'f': if (moveState.up === -1) moveState.up = 0; break;
+            }
+        }
+        
+        function pointerLockChange() {
+            if (document.pointerLockElement === renderer.domElement) {
+                // Pointer locked
+            } else {
+                // Pointer unlocked - can pause game or show message if desired
+            }
+        }
+
+        function onMouseMove(event) {
+            if (!gameStarted || document.pointerLockElement !== renderer.domElement) {
+                return;
+            }
+            const movementX = event.movementX || 0;
+            const movementY = event.movementY || 0;
+
+            yaw -= movementX * lookSpeed;
+            pitch -= movementY * lookSpeed;
+            pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch)); // Clamp pitch
+
+            euler.set(pitch, yaw, 0, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+        }
+        
+        function updatePlayerPosition(delta) {
+            const effectiveSpeed = playerSpeed * delta;
+            const moveVector = new THREE.Vector3();
+            const lookVector = new THREE.Vector3(); // For touch look
+            
+            // Keyboard movement
+            if (moveState.forward !== 0) {
+                camera.getWorldDirection(moveVector);
+                camera.position.addScaledVector(moveVector, moveState.forward * effectiveSpeed);
+            }
+            if (moveState.right !== 0) {
+                camera.getWorldDirection(moveVector);
+                moveVector.cross(camera.up); // Get right vector
+                camera.position.addScaledVector(moveVector, moveState.right * effectiveSpeed);
+            }
+            if (moveState.up !== 0) { // Vertical movement
+                 camera.position.y += moveState.up * effectiveSpeed;
+            }
+
+            // Touch movement (overrides keyboard if active)
+            if (touchState.moveY !== 0) {
+                camera.getWorldDirection(moveVector);
+                camera.position.addScaledVector(moveVector, touchState.moveY * effectiveSpeed);
+            }
+            if (touchState.moveX !== 0) {
+                camera.getWorldDirection(moveVector); // Get forward vector
+                moveVector.cross(camera.up); // Get right vector relative to camera
+                camera.position.addScaledVector(moveVector, touchState.moveX * effectiveSpeed);
+            }
+            
+            // Touch look
+            if (touchState.lookX !== 0 || touchState.lookY !== 0) {
+                const lookDeltaFactor = 0.03; // Adjust sensitivity for touch look
+                yaw -= touchState.lookX * lookDeltaFactor;
+                pitch -= touchState.lookY * lookDeltaFactor;
+                pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch));
+                euler.set(pitch, yaw, 0, 'YXZ');
+                camera.quaternion.setFromEuler(euler);
+            }
+        }
+
+        // --- ANIMATION LOOP ---
+        let animationFrameId;
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (gameStarted) {
+                updatePlayerPosition(delta);
+                checkWordCollection();
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- START ---
+        init(); // Initialize and show start message
+        // animate() will be called after user clicks "Start" in the message box via startGame()
+        // or if already started, it will continue.
+        // Initial call to animate to ensure it runs if game was already in progress (e.g. page refresh)
+        // However, startGame handles this better.
+        // We call animate once to get the loop going, but actual game logic is gated by gameStarted.
+        // animate(); // Start rendering loop immediately, game logic gated by gameStarted
+    </script>
+</body>
+</html>

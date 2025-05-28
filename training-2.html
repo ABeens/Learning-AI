@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js"></script>
+</head>
+<body>
+<h1>Deep Learning with brain.js</h1>
+<div id="demo"></div>
+
+<script>
+// Crear una Red Neuronal
+const net = new brain.NeuralNetwork();
+
+// Entrenamiento de la Red
+net.train([
+    { input: [0], output: [2] },   // White
+    { input: [2], output: [10] },   // Darkgrey
+    { input: [3], output: [12] },   // Black
+    { input: [4], output: [16] },   // Azul oscuro
+    { input: [5], output: [17] },   // Verde oscuro
+    { input: [6], output: [18] },    // Gris claro
+    { input: [1], output: [19] },   // Lightgrey
+]);
+
+// Ejecutar la Red para predecir el valor de 7 (nuevo color)
+const result = net.run([7]);
+
+// Mostrar el resultado
+document.getElementById("demo").innerHTML = "Predicción para el valor 7: " + result;
+</script>
+</body>
+</html>

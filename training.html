@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Genético - Simulación de Entrenamiento</title>
+    <style>
+        /* --- CSS similar al anterior, adaptado --- */
+        :root {
+            --game-size: 400px;
+            --tile-size: 25px; /* Más pequeño para más espacio */
+            --robot-color: #3498db;
+            --goal-color: #2ecc71;
+            --obstacle-color: #e74c3c;
+            --path-color: rgba(52, 152, 219, 0.3); /* Color para visualizar ruta */
+            --bg-color: #ecf0f1;
+            --border-color: #bdc3c7;
+            --text-color: #2c3e50;
+            --panel-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h1 {
+            margin-bottom: 0;
+            color: var(--robot-color);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #main-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #game-board {
+            width: var(--game-size);
+            height: var(--game-size);
+            border: 3px solid var(--border-color);
+            background-color: #fdfefe;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .game-object {
+            width: var(--tile-size);
+            height: var(--tile-size);
+            position: absolute;
+            font-size: calc(var(--tile-size) * 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: top 0.15s ease-in-out, left 0.15s ease-in-out;
+            z-index: 5;
+        }
+
+        #robot { z-index: 10; transition: top 0.15s ease-in-out, left 0.15s ease-in-out, background-color 0.3s ease; }
+        #goal { color: var(--goal-color); z-index: 1; }
+        .obstacle { color: var(--obstacle-color); z-index: 3; }
+        .path-dot { /* Para visualizar la mejor ruta */
+             width: calc(var(--tile-size) * 0.3);
+             height: calc(var(--tile-size) * 0.3);
+             background-color: var(--path-color);
+             border-radius: 50%;
+             position: absolute;
+             z-index: 2;
+             transition: background-color 0.5s ease;
+        }
+
+
+        #control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 300px;
+        }
+
+        .parameter-group label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .parameter-group input[type="number"],
+        .parameter-group input[type="range"] {
+            width: 95%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+        }
+         .parameter-group input[type="range"] {
+             width: 70%; /* Slider más corto */
+             vertical-align: middle;
+         }
+         .parameter-group span { /* Para mostrar valor del slider */
+             display: inline-block;
+             min-width: 30px;
+             text-align: right;
+             font-size: 0.9em;
+             margin-left: 5px;
+         }
+
+
+        #training-info, #status-info {
+            font-size: 0.9em;
+            background-color: #f8f9f9;
+            padding: 10px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+         #training-info p, #status-info p {
+             margin: 4px 0;
+         }
+         #status-info .status { font-weight: bold; }
+         #status-info .status.running { color: #e67e22; }
+         #status-info .status.finished { color: var(--goal-color); }
+         #status-info .status.idle { color: var(--text-color); }
+
+
+        button {
+            padding: 10px 15px;
+            margin: 5px 0;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+        #start-training-button { background-color: #3498db; width: 100%; }
+        #start-training-button:hover { background-color: #2980b9; }
+        #run-best-button { background-color: #2ecc71; width: 100%; }
+        #run-best-button:hover { background-color: #27ae60; }
+        #reset-level-button { background-color: #95a5a6; width: 100%;}
+        #reset-level-button:hover { background-color: #7f8c8d; }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Estilos para feedback visual durante entrenamiento */
+        #game-board.training {
+            animation: pulse-border 1.5s infinite ease-in-out;
+        }
+         @keyframes pulse-border {
+             0%, 100% { border-color: var(--border-color); }
+             50% { border-color: var(--robot-color); }
+         }
+
+    </style>
+</head>
+<body>
+
+    <h1>Robot Genético 🧬</h1>
+
+    <div id="main-container">
+        <div id="game-board">
+            <div id="robot" class="game-object">🤖</div>
+            <div id="goal" class="game-object">🎯</div>
+            </div>
+
+        <div id="control-panel">
+            <h3>Parámetros de Entrenamiento</h3>
+            <div class="parameter-group">
+                <label for="population-size">Tamaño Población:</label>
+                <input type="number" id="population-size" value="100" min="10" max="500" step="10">
+            </div>
+            <div class="parameter-group">
+                <label for="mutation-rate">Tasa Mutación:</label>
+                 <input type="range" id="mutation-rate-slider" value="5" min="0" max="50" step="1">
+                 <span id="mutation-rate-value">5%</span>
+            </div>
+            <div class="parameter-group">
+                 <label for="generations">Generaciones:</label>
+                 <input type="number" id="generations" value="50" min="5" max="500" step="5">
+            </div>
+             <div class="parameter-group">
+                 <label for="sequence-length">Longitud Secuencia:</label>
+                 <input type="number" id="sequence-length" value="40" min="10" max="100" step="5">
+             </div>
+
+             <h3>Control</h3>
+            <button id="start-training-button">🧬 Iniciar Entrenamiento</button>
+            <button id="run-best-button" disabled>▶️ Ejecutar Mejor Ruta</button>
+            <button id="reset-level-button">🔄 Nuevo Nivel / Reset</button>
+
+             <h3>Información del Entrenamiento</h3>
+             <div id="training-info">
+                 <p>Generación: <span id="current-generation">0</span> / <span id="total-generations">50</span></p>
+                 <p>Mejor Fitness: <span id="best-fitness">-</span></p>
+                 <p>Mejor Ruta: <span id="best-sequence-info">N/A</span></p>
+             </div>
+             <h3>Estado</h3>
+              <div id="status-info">
+                  <p>Estado: <span id="status-message" class="status idle">Esperando</span></p>
+                  <div id="progress-bar-container" style="width: 100%; background-color: #e0e0e0; border-radius: 5px; display: none;">
+                      <div id="progress-bar" style="width: 0%; height: 10px; background-color: var(--robot-color); border-radius: 5px; transition: width 0.1s linear;"></div>
+                  </div>
+              </div>
+        </div>
+    </div>
+
+    <script>
+        // --- JavaScript con Algoritmo Genético ---
+
+        const BOARD_SIZE = 400;
+        const TILE_SIZE = 25;
+        const GRID_SIZE = BOARD_SIZE / TILE_SIZE; // 16x16 grid
+        const NUM_OBSTACLES = 15;
+        const MOVES = ['up', 'down', 'left', 'right'];
+        const ANIMATION_SPEED = 100; // ms para la ejecución final
+
+        // DOM Elements
+        const board = document.getElementById('game-board');
+        const robot = document.getElementById('robot');
+        const goal = document.getElementById('goal');
+        const popSizeInput = document.getElementById('population-size');
+        const mutationRateSlider = document.getElementById('mutation-rate-slider');
+        const mutationRateValueSpan = document.getElementById('mutation-rate-value');
+        const generationsInput = document.getElementById('generations');
+        const sequenceLengthInput = document.getElementById('sequence-length');
+        const startTrainingButton = document.getElementById('start-training-button');
+        const runBestButton = document.getElementById('run-best-button');
+        const resetLevelButton = document.getElementById('reset-level-button');
+        const currentGenSpan = document.getElementById('current-generation');
+        const totalGenSpan = document.getElementById('total-generations');
+        const bestFitnessSpan = document.getElementById('best-fitness');
+        const bestSequenceInfoSpan = document.getElementById('best-sequence-info');
+        const statusMessageSpan = document.getElementById('status-message');
+         const progressBarContainer = document.getElementById('progress-bar-container');
+         const progressBar = document.getElementById('progress-bar');
+
+
+        // Game State & GA State
+        let robotPos = { x: 0, y: 0 };
+        let goalPos = { x: 0, y: 0 };
+        let obstaclePositions = [];
+        let pathDots = []; // Divs para visualizar la ruta
+
+        let population = [];
+        let fitnessScores = [];
+        let bestSequenceOverall = [];
+        let bestFitnessOverall = -Infinity;
+        let currentGeneration = 0;
+        let isTraining = false;
+        let isRunning = false;
+         let trainingTimeoutId = null; // Para poder cancelar
+
+        // --- Funciones Auxiliares ---
+        function gridToPixels(coord) { return coord * TILE_SIZE; }
+        function updateElementPosition(element, gridPos) {
+            element.style.left = `${gridToPixels(gridPos.x)}px`;
+            element.style.top = `${gridToPixels(gridPos.y)}px`;
+        }
+        function getRandomGridPosition(occupied = []) {
+             let pos; let isOccupied;
+             const maxAttempts = GRID_SIZE * GRID_SIZE;
+             let attempts = 0;
+             do {
+                 pos = { x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) };
+                 isOccupied = occupied.some(occ => occ.x === pos.x && occ.y === pos.y);
+                 attempts++;
+                 if (attempts > maxAttempts) { // Evitar bucle infinito si el tablero está lleno
+                     console.warn("No se pudo encontrar posición libre.");
+                     return {x:0, y:0}; // Fallback
+                 }
+             } while (isOccupied);
+             return pos;
+        }
+        function checkCollision(pos, collisionSet) {
+            return collisionSet.some(obs => obs.x === pos.x && obs.y === pos.y);
+        }
+        function manhattanDistance(pos1, pos2) {
+             return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
+        }
+         function setStatus(message, type = 'idle') {
+             statusMessageSpan.textContent = message;
+             statusMessageSpan.className = `status ${type}`;
+             progressBarContainer.style.display = (type === 'running') ? 'block' : 'none';
+         }
+         function updateProgressBar(current, total) {
+             const percentage = total > 0 ? (current / total) * 100 : 0;
+             progressBar.style.width = `${percentage}%`;
+         }
+
+
+        // --- Visualización de Ruta ---
+        function clearPathVisualization() {
+             pathDots.forEach(dot => dot.remove());
+             pathDots = [];
+        }
+        function visualizePath(sequence) {
+             clearPathVisualization();
+             let currentPos = { x: 0, y: 0 }; // Siempre empieza en 0,0
+             sequence.forEach(move => {
+                 switch (move) {
+                     case 'up':    currentPos.y--; break;
+                     case 'down':  currentPos.y++; break;
+                     case 'left':  currentPos.x--; break;
+                     case 'right': currentPos.x++; break;
+                 }
+                 // Validar posición antes de añadir punto
+                 if (currentPos.x >= 0 && currentPos.x < GRID_SIZE && currentPos.y >= 0 && currentPos.y < GRID_SIZE) {
+                     const dot = document.createElement('div');
+                     dot.className = 'path-dot';
+                      // Centrar el punto en la casilla
+                      const offset = (TILE_SIZE - (TILE_SIZE * 0.3)) / 2;
+                     dot.style.left = `${gridToPixels(currentPos.x) + offset}px`;
+                     dot.style.top = `${gridToPixels(currentPos.y) + offset}px`;
+                     board.appendChild(dot);
+                     pathDots.push(dot);
+                 }
+             });
+        }
+
+
+        // --- Lógica del Nivel ---
+        function setupLevel() {
+             clearPathVisualization();
+             if (trainingTimeoutId) clearTimeout(trainingTimeoutId); // Detener entrenamiento si estaba en curso
+             isTraining = false;
+             isRunning = false;
+             robotPos = { x: 0, y: 0 };
+             updateElementPosition(robot, robotPos);
+
+             // Limpiar obstáculos anteriores
+             obstaclePositions.forEach(pos => {
+                 const el = document.getElementById(`obs-${pos.x}-${pos.y}`);
+                 if (el) el.remove();
+             });
+             obstaclePositions = [];
+
+             let occupied = [{ ...robotPos }];
+
+             // Posicionar Meta
+             goalPos = getRandomGridPosition(occupied);
+             updateElementPosition(goal, goalPos);
+             occupied.push({ ...goalPos });
+
+             // Posicionar Obstáculos
+             for (let i = 0; i < NUM_OBSTACLES; i++) {
+                 const pos = getRandomGridPosition(occupied);
+                 obstaclePositions.push(pos);
+                 occupied.push(pos);
+                 const obsEl = document.createElement('div');
+                 obsEl.id = `obs-${pos.x}-${pos.y}`;
+                 obsEl.className = 'game-object obstacle';
+                 obsEl.textContent = '🧱';
+                 updateElementPosition(obsEl, pos);
+                 board.appendChild(obsEl);
+             }
+
+             // Resetear estado GA
+             population = [];
+             fitnessScores = [];
+             bestSequenceOverall = [];
+             bestFitnessOverall = -Infinity;
+             currentGeneration = 0;
+             bestFitnessSpan.textContent = '-';
+             bestSequenceInfoSpan.textContent = 'N/A';
+             currentGenSpan.textContent = '0';
+             totalGenSpan.textContent = generationsInput.value;
+             runBestButton.disabled = true;
+             startTrainingButton.disabled = false;
+              resetLevelButton.disabled = false; // Siempre permitir resetear
+             board.classList.remove('training');
+             setStatus('Nivel listo. Ajusta parámetros y entrena.');
+             updateProgressBar(0, 1); // Reset progress bar
+             console.log("Nivel listo. Meta en:", goalPos);
+        }
+
+        // --- Algoritmo Genético ---
+
+        // 1. Crear Población Inicial
+        function createInitialPopulation(size, length) {
+            population = [];
+            for (let i = 0; i < size; i++) {
+                let sequence = [];
+                for (let j = 0; j < length; j++) {
+                    sequence.push(MOVES[Math.floor(Math.random() * MOVES.length)]);
+                }
+                population.push(sequence);
+            }
+        }
+
+        // 2. Calcular Fitness (Simulación RÁPIDA, sin animación)
+        function calculateFitness(sequence) {
+             let currentPos = { x: 0, y: 0 };
+             let fitness = 0;
+             let reachedGoal = false;
+             let hitObstacle = false;
+             let hitBoundary = false;
+             let minDistance = manhattanDistance(currentPos, goalPos);
+
+             for (const move of sequence) {
+                 let nextPos = { ...currentPos };
+                 switch (move) {
+                     case 'up':    nextPos.y--; break;
+                     case 'down':  nextPos.y++; break;
+                     case 'left':  nextPos.x--; break;
+                     case 'right': nextPos.x++; break;
+                 }
+
+                 // Penalización por salirse
+                 if (nextPos.x < 0 || nextPos.x >= GRID_SIZE || nextPos.y < 0 || nextPos.y >= GRID_SIZE) {
+                     hitBoundary = true;
+                     break; // Termina la simulación para esta secuencia
+                 }
+                 // Penalización por chocar
+                 if (checkCollision(nextPos, obstaclePositions)) {
+                     hitObstacle = true;
+                     break; // Termina la simulación
+                 }
+
+                 currentPos = nextPos;
+                 minDistance = Math.min(minDistance, manhattanDistance(currentPos, goalPos));
+
+                 // Comprobar si llegó a la meta
+                 if (currentPos.x === goalPos.x && currentPos.y === goalPos.y) {
+                     reachedGoal = true;
+                     break; // Llegó, termina simulación
+                 }
+             }
+
+             // Cálculo final del Fitness: Queremos maximizarlo
+             // Base: Inverso de la distancia mínima (más cerca es mejor)
+             fitness = 1.0 / (minDistance + 1.0); // +1 para evitar división por cero
+
+             // Bonus grande por llegar a la meta
+             if (reachedGoal) {
+                 fitness *= 10.0; // Bonus significativo
+                 // Bonus por secuencia corta (si llegó) - opcional
+                 // fitness += (sequence.length - sequence.indexOf(move)) / sequence.length;
+             }
+
+             // Penalizaciones fuertes por fallos
+             if (hitBoundary) fitness *= 0.1; // Reducción drástica
+             if (hitObstacle) fitness *= 0.2; // Reducción drástica
+
+             return fitness;
+        }
+
+
+        // 3. Selección (Torneo simple)
+        function selection(pop, scores) {
+             const selected = [];
+             const tournamentSize = 5; // Comparar 5 individuos al azar
+             for (let i = 0; i < pop.length; i++) {
+                 let bestInTournament = -1;
+                 let bestFitness = -Infinity;
+                 for (let j = 0; j < tournamentSize; j++) {
+                     const randomIndex = Math.floor(Math.random() * pop.length);
+                     if (scores[randomIndex] > bestFitness) {
+                         bestFitness = scores[randomIndex];
+                         bestInTournament = randomIndex;
+                     }
+                 }
+                 selected.push(pop[bestInTournament]);
+             }
+             return selected;
+        }
+         // Alternativa: Selección por Elitismo + Ruleta
+         // function selectionElite(pop, scores, eliteSize = 2) { ... }
+
+
+        // 4. Crossover (Punto único)
+        function crossover(parent1, parent2) {
+             const crossoverPoint = Math.floor(Math.random() * parent1.length);
+             const child1 = parent1.slice(0, crossoverPoint).concat(parent2.slice(crossoverPoint));
+             const child2 = parent2.slice(0, crossoverPoint).concat(parent1.slice(crossoverPoint));
+             return [child1, child2];
+        }
+
+        // 5. Mutación
+        function mutate(sequence, mutationRate) {
+             return sequence.map(move => {
+                 if (Math.random() < mutationRate) {
+                     return MOVES[Math.floor(Math.random() * MOVES.length)]; // Cambia a un movimiento aleatorio
+                 }
+                 return move;
+             });
+        }
+
+        // --- Ciclo Principal de Entrenamiento ---
+        function runTrainingGeneration() {
+            if (!isTraining || currentGeneration >= parseInt(generationsInput.value)) {
+                 endTraining();
+                return;
+            }
+
+            currentGeneration++;
+
+            // 1. Calcular Fitness de la población actual
+            fitnessScores = population.map(seq => calculateFitness(seq));
+
+            // 2. Encontrar el mejor de esta generación y global
+            let bestFitnessThisGen = -Infinity;
+            let bestSequenceThisGen = [];
+            for (let i = 0; i < population.length; i++) {
+                if (fitnessScores[i] > bestFitnessThisGen) {
+                    bestFitnessThisGen = fitnessScores[i];
+                    bestSequenceThisGen = population[i];
+                }
+            }
+             if (bestFitnessThisGen > bestFitnessOverall) {
+                 bestFitnessOverall = bestFitnessThisGen;
+                 bestSequenceOverall = bestSequenceThisGen;
+                 // Actualizar visualización de la mejor ruta encontrada hasta ahora
+                 visualizePath(bestSequenceOverall);
+                 bestSequenceInfoSpan.textContent = `${bestSequenceOverall.length} pasos`; //(Score: ${bestFitnessOverall.toFixed(4)})`;
+             }
+
+
+             // Actualizar UI
+             currentGenSpan.textContent = currentGeneration;
+             bestFitnessSpan.textContent = bestFitnessOverall.toFixed(4);
+             updateProgressBar(currentGeneration, parseInt(generationsInput.value));
+
+
+            // 3. Crear nueva generación
+            const selectedParents = selection(population, fitnessScores);
+            const nextPopulation = [];
+
+            // Elitismo: Mantener al mejor directamente (opcional pero bueno)
+            if (bestSequenceOverall.length > 0) {
+                nextPopulation.push([...bestSequenceOverall]); // Copia del mejor global
+            }
+
+             // Llenar el resto con hijos
+            while (nextPopulation.length < population.length) {
+                const parent1 = selectedParents[Math.floor(Math.random() * selectedParents.length)];
+                const parent2 = selectedParents[Math.floor(Math.random() * selectedParents.length)];
+                const [child1, child2] = crossover(parent1, parent2);
+
+                 const mutationRate = parseFloat(mutationRateSlider.value) / 100.0;
+                nextPopulation.push(mutate(child1, mutationRate));
+                if (nextPopulation.length < population.length) {
+                    nextPopulation.push(mutate(child2, mutationRate));
+                }
+            }
+
+            population = nextPopulation;
+
+             // Programar la siguiente generación (usando setTimeout para no bloquear el hilo)
+             trainingTimeoutId = setTimeout(runTrainingGeneration, 0); // 0ms delay cede el control brevemente
+        }
+
+        function startTraining() {
+             if (isTraining || isRunning) return;
+             isTraining = true;
+             setupLevel(); // Reiniciar nivel antes de entrenar para asegurar consistencia
+             setStatus('Entrenando...', 'running');
+             startTrainingButton.disabled = true;
+             runBestButton.disabled = true;
+              resetLevelButton.disabled = true; // No resetear durante el entrenamiento
+              board.classList.add('training'); // Feedback visual
+
+             // Obtener parámetros
+             const popSize = parseInt(popSizeInput.value);
+             const seqLength = parseInt(sequenceLengthInput.value);
+             const totalGenerations = parseInt(generationsInput.value);
+             totalGenSpan.textContent = totalGenerations; // Actualizar total en UI
+
+             // Inicializar
+             createInitialPopulation(popSize, seqLength);
+             bestFitnessOverall = -Infinity;
+             bestSequenceOverall = [];
+             currentGeneration = 0;
+
+             // Iniciar ciclo
+             runTrainingGeneration();
+        }
+
+        function endTraining() {
+             isTraining = false;
+             board.classList.remove('training');
+             if (currentGeneration >= parseInt(generationsInput.value)) {
+                setStatus('Entrenamiento completado.', 'finished');
+             } else {
+                 setStatus('Entrenamiento detenido.'); // Si se detuvo antes
+             }
+
+             startTrainingButton.disabled = false;
+              resetLevelButton.disabled = false;
+             // Habilitar botón de ejecución solo si se encontró alguna secuencia
+             runBestButton.disabled = (bestSequenceOverall.length === 0);
+
+             console.log("Entrenamiento finalizado. Mejor fitness:", bestFitnessOverall);
+             console.log("Mejor secuencia:", bestSequenceOverall);
+        }
+
+         // --- Ejecución de la Mejor Ruta (Animada) ---
+         function runBestSequence() {
+             if (isTraining || isRunning || bestSequenceOverall.length === 0) return;
+             isRunning = true;
+             setStatus('Ejecutando mejor ruta...', 'running');
+             runBestButton.disabled = true;
+             startTrainingButton.disabled = true; // No entrenar mientras corre
+              resetLevelButton.disabled = true; // No resetear mientras corre
+             clearPathVisualization(); // Limpiar puntos guía
+
+             let currentPos = { x: 0, y: 0 };
+             updateElementPosition(robot, currentPos); // Reset robot a inicio
+             let step = 0;
+
+             const intervalId = setInterval(() => {
+                 if (step >= bestSequenceOverall.length) {
+                     clearInterval(intervalId);
+                     isRunning = false;
+                     // Comprobar si realmente llegó
+                     const finalDistance = manhattanDistance(currentPos, goalPos);
+                     if (finalDistance === 0) {
+                          setStatus('Ejecución completada: ¡Éxito!', 'finished');
+                          robot.style.backgroundColor = 'lightgreen'; // Feedback visual
+                     } else {
+                          setStatus(`Ejecución completada: No llegó a la meta (distancia ${finalDistance})`, 'idle');
+                          robot.style.backgroundColor = 'lightcoral'; // Feedback visual
+                     }
+                      runBestButton.disabled = false;
+                      startTrainingButton.disabled = false;
+                      resetLevelButton.disabled = false;
+                     setTimeout(() => robot.style.backgroundColor = '', 1500); // Resetear color robot
+                     return;
+                 }
+
+                 const move = bestSequenceOverall[step];
+                 let nextPos = { ...currentPos };
+                 switch (move) {
+                     case 'up':    nextPos.y--; break;
+                     case 'down':  nextPos.y++; break;
+                     case 'left':  nextPos.x--; break;
+                     case 'right': nextPos.x++; break;
+                 }
+
+                 // Validar movimiento antes de aplicarlo (aunque la secuencia "óptima" no debería fallar)
+                 if (nextPos.x < 0 || nextPos.x >= GRID_SIZE || nextPos.y < 0 || nextPos.y >= GRID_SIZE || checkCollision(nextPos, obstaclePositions)) {
+                      console.error("La 'mejor' secuencia encontrada intenta un movimiento inválido en el paso", step, move);
+                      clearInterval(intervalId);
+                      isRunning = false;
+                      setStatus('Error en ejecución: movimiento inválido.', 'idle');
+                       runBestButton.disabled = false;
+                       startTrainingButton.disabled = false;
+                       resetLevelButton.disabled = false;
+                      return;
+                 }
+
+                 currentPos = nextPos;
+                 updateElementPosition(robot, currentPos);
+                 step++;
+
+             }, ANIMATION_SPEED);
+         }
+
+
+        // --- Event Listeners ---
+        startTrainingButton.addEventListener('click', startTraining);
+        runBestButton.addEventListener('click', runBestSequence);
+        resetLevelButton.addEventListener('click', setupLevel); // SetupLevel ahora resetea todo
+
+         mutationRateSlider.addEventListener('input', (e) => {
+            mutationRateValueSpan.textContent = `${e.target.value}%`;
+         });
+
+
+        // Inicializar el nivel al cargar la página
+        setupLevel();
+
+    </script>
+
+</body>
+</html>

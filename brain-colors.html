@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Clasificador de Colores Avanzado</title>
+  <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.2/dist/brain-browser.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Estilos personalizados adicionales si son necesarios */
+    body {
+      font-family: 'Inter', sans-serif; /* Inter es una fuente común con Tailwind */
+    }
+    .neuron-connection {
+        stroke: #9ca3af; /* gray-400 */
+        stroke-width: 1;
+    }
+    .neuron-node {
+        fill: #3b82f6; /* blue-500 */
+        stroke: #1e40af; /* blue-700 */
+        stroke-width: 2;
+    }
+    .neuron-text {
+        font-size: 10px;
+        fill: white;
+        text-anchor: middle;
+        dominant-baseline: central;
+    }
+    .input-node { fill: #10b981; /* emerald-500 */ }
+    .hidden-node { fill: #f59e0b; /* amber-500 */ }
+    .output-node { fill: #8b5cf6; /* violet-500 */ }
+
+    /* Estilo para el contenedor del SVG para centrarlo y darle un tamaño */
+    #interactiveNetworkVisualization svg {
+        display: block;
+        margin: auto;
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #e5e7eb; /* gray-200 */
+        border-radius: 0.5rem; /* rounded-lg */
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+  <div class="container mx-auto max-w-4xl bg-white p-6 md:p-8 rounded-xl shadow-2xl">
+
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">Clasificador de Colores Avanzado</h1>
+      <p class="text-gray-600 mt-2">Entrena una red neuronal para asociar colores con etiquetas y observa cómo funciona.</p>
+    </header>
+
+    <section class="mb-10 p-6 bg-gradient-to-br from-sky-100 to-indigo-100 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-6 text-center text-sky-700">Prueba la Red Neuronal</h2>
+      <div class="flex flex-col md:flex-row items-center justify-around gap-6">
+        <div class="flex flex-col items-center">
+          <label for="colorPicker" class="block text-sm font-medium text-gray-700 mb-2">Elige un color:</label>
+          <input type="color" id="colorPicker" value="#34D399" onchange="predecirYActualizarUI()" class="w-24 h-24 p-1 border-4 border-white rounded-full shadow-md cursor-pointer">
+        </div>
+   <div id="colorPreview" class="w-32 h-32 md:w-40 md:h-40 rounded-lg shadow-inner border-2 border-gray-300" style="background-color: #34D399;"></div>
+        <div class="text-center">
+          <div id="rgbValue" class="text-lg font-mono text-gray-700 mb-1">RGB: rgb(52, 211, 153)</div>
+          <div id="normalizedRgbValue" class="text-sm font-mono text-gray-500 mb-2">Normalizado: R: ., G: ., B: .</div>
+          <div id="resultado" class="text-xl font-bold text-indigo-600 bg-indigo-100 px-4 py-2 rounded-md shadow">Predicción: ...</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="calculationDetailsSection" class="mb-10 p-6 bg-gray-50 rounded-lg shadow">
+        <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">🔍 Detalles del Cálculo</h2>
+        <div id="calculationDetailsContent" class="space-y-3 text-sm md:text-base">
+            <p class="text-gray-600 text-center">Elige un color para ver los detalles de la predicción aquí.</p>
+        </div>
+    </section>
+
+    <section class="mb-10 p-6 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-6 text-center text-emerald-700">Entrena la Red</h2>
+      <div class="grid md:grid-cols-3 gap-4 items-end">
+        <div>
+          <label for="newColor" class="block text-sm font-medium text-gray-700">Nuevo Color:</label>
+          <input type="color" id="newColor" value="#8B5CF6" class="mt-1 block w-full h-12 p-1 border-gray-300 rounded-md shadow-sm cursor-pointer">
+        </div>
+        <div>
+          <label for="newLabel" class="block text-sm font-medium text-gray-700">Etiqueta (ej. creativo, natural):</label>
+          <input type="text" id="newLabel" placeholder="Ej: creativo" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500">
+        </div>
+        <button onclick="agregarEntrenamientoYActualizarUI()" class="w-full md:col-span-1 bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out transform hover:scale-105">
+          Agregar y Re-entrenar
+        </button>
+      </div>
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-700 mb-2">Colores Entrenados:</h3>
+        <ul id="trainList" class="overflow-y-auto bg-white p-3 rounded-md shadow-inner space-y-2">
+          </ul>
+      </div>
+    </section>
+
+    <section class="mb-10 p-6 bg-gray-50 rounded-lg shadow">
+      <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">Estructura de la Red</h2>
+      <div id="redVisual" class="text-center p-4 rounded-md bg-white shadow-inner">
+        </div>
+    </section>
+    
+    <section c lass="mb-10 p-6 bg-gray-50 rounded-lg shadow">
+        <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">Visualización Interactiva (SVG)</h2>
+        <div id="interactiveNetworkVisualization" class="p-4 rounded-md bg-white shadow-inner overflow-x-auto">
+            </div>
+    </section>
+
+
+    <section class="p-6 bg-gray-50 rounded-lg shadow">
+      <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">Pesos de las Conexiones</h2>
+      <div id="visualizacion-pesos" class="space-y-4">
+        </div>
+    </section>
+
+  </div>
+
+  <script>
+    let net;
+    let etiquetasUnicas = new Set();
+    let trainingData = [
+      { input: hexToRgbNorm("#00ff00"), output: { calma: 1 } }, // Verde
+      { input: hexToRgbNorm("#ff0000"), output: { peligro: 1 } }, // Rojo
+      { input: hexToRgbNorm("#0000ff"), output: { confianza: 1 } }, // Azul
+      { input: hexToRgbNorm("#ffff00"), output: { alegria: 1 } }, // Amarillo
+      /*{ input: hexToRgbNorm("#800080"), output: { misterio: 1 } }, // Púrpura
+      { input: hexToRgbNorm("#ffa500"), output: { energia: 1 } }, // Naranja
+      { input: hexToRgbNorm("#ffc0cb"), output: { dulzura: 1 } }, // Rosa
+      { input: hexToRgbNorm("#a52a2a"), output: { tierra: 1 } }, // Marrón
+      { input: hexToRgbNorm("#000000"), output: { elegancia: 1 } }, // Negro
+      { input: hexToRgbNorm("#ffffff"), output: { pureza: 1 } }  // Blanco*/
+    ];
+
+    // Inicializar etiquetasUnicas con las etiquetas del trainingData inicial
+    trainingData.forEach(item => {
+      Object.keys(item.output).forEach(tag => etiquetasUnicas.add(tag));
+    });
+
+    // Convierte un color hexadecimal a un objeto RGB normalizado (valores de 0 a 1)
+    function hexToRgbNorm(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      return {
+        r: ((bigint >> 16) & 255) / 255,
+        g: ((bigint >> 8) & 255) / 255,
+        b: (bigint & 255) / 255
+      };
+    }
+
+    // Convierte un color hexadecimal a una cadena de texto RGB (ej: "rgb(255,0,0)")
+    function hexToRgbString(hex) {
+      const bigint = parseInt(hex.slice(1), 16);
+      const r = (bigint >> 16) & 255;
+      const g = (bigint >> 8) & 255;
+      const b = bigint & 255;
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    // Formatea un valor de probabilidad a porcentaje (ej: "99.50%")
+    function formatProbability(value) {
+        return (value * 100).toFixed(2) + '%';
+    }
+
+    // Entrena la red neuronal con los datos actuales
+    function entrenarRed() {
+      // Configuración de la red neuronal
+      net = new brain.NeuralNetwork({ 
+          hiddenLayers: [etiquetasUnicas.size > 3 ? etiquetasUnicas.size : 3], // Capa oculta: número de etiquetas o mínimo 3
+          activation: 'sigmoid', // Función de activación
+          learningRate: 0.3 // Tasa de aprendizaje
+      });
+
+      // Prepara los datos de entrenamiento en el formato que brain.js espera
+      const fullData = trainingData.map(item => {
+        const fullOutput = {};
+        etiquetasUnicas.forEach(tag => {
+          fullOutput[tag] = item.output[tag] || 0; // 1 para la etiqueta correcta, 0 para las demás
+        });
+        return {
+          input: item.input,
+          output: fullOutput
+        };
+      });
+      
+      if (fullData.length === 0) {
+        console.warn("No hay datos de entrenamiento. La red no será entrenada.");
+        net = null; // Asegurarse de que la red quede nula si no hay datos
+        return;
+      }
+
+      // Entrena la red
+      net.train(fullData, { 
+        iterations: 500,
+        log: false, // Cambiar a true para ver logs en consola
+        errorThresh: 0.005,
+        learningRate: 0.3
+      });
+      console.log("Red entrenada con las etiquetas:", Array.from(etiquetasUnicas));
+    }
+
+    
+    // Realiza una predicción con el color seleccionado y actualiza la UI
+    function predecirYActualizarUI() {
+      const hex = document.getElementById("colorPicker").value;
+      document.getElementById("colorPreview").style.background = hex;
+      document.getElementById("rgbValue").innerText = `RGB: ${hexToRgbString(hex)}`;
+      
+      const normalizedRgb = hexToRgbNorm(hex); // Corregido el nombre de la variable
+      document.getElementById("normalizedRgbValue").innerText = `Normalizado: R: ${normalizedRgb.r.toFixed(2)}, G: ${normalizedRgb.g.toFixed(2)}, B: ${normalizedRgb.b.toFixed(2)}`;
+
+      if (!net) {
+        document.getElementById("resultado").innerText = "Red no entrenada";
+        document.getElementById("calculationDetailsContent").innerHTML = `<p class="text-red-500 text-center">La red neuronal aún no ha sido entrenada. Agrega datos de entrenamiento.</p>`;
+        return;
+      }
+      
+      const input = hexToRgbNorm(hex); // Usar el valor normalizado correcto
+      const result = net.run(input); 
+
+      let predictedLabel = "Desconocido";
+      let maxProbability = 0;
+      for (let key in result) {
+        if (result[key] > maxProbability) {
+          maxProbability = result[key];
+          predictedLabel = key;
+        }
+      }
+
+      document.getElementById("resultado").innerText = `Predicción: ${predictedLabel} (${formatProbability(maxProbability)})`;
+      mostrarDetallesCalculo(input, result, predictedLabel);
+    }
+
+    // Muestra los detalles del cálculo de la predicción en la UI
+    function mostrarDetallesCalculo(inputRGB, outputProbabilities, predictedLabel) {
+        const detailsDiv = document.getElementById("calculationDetailsContent");
+        if (!net || !net.net || !net.net.outputs) { 
+            detailsDiv.innerHTML = `<p class="text-orange-500 text-center">No se pueden mostrar los detalles. La red podría no estar completamente inicializada o entrenada.</p>`;
+            return;
+        }
+
+        let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`;
+
+        // Columna 1: Input y Estructura Básica
+        html += `<div class="bg-white p-4 rounded-lg shadow">`;
+        html += `<h4 class="font-semibold text-lg mb-2 text-indigo-600">Entrada (RGB Normalizado):</h4>`;
+        html += `<ul class="list-disc list-inside space-y-1">`;
+        html += `  <li>R: <code class="bg-indigo-100 px-1 rounded">${inputRGB.r.toFixed(4)}</code></li>`;
+        html += `  <li>G: <code class="bg-indigo-100 px-1 rounded">${inputRGB.g.toFixed(4)}</code></li>`;
+        html += `  <li>B: <code class="bg-indigo-100 px-1 rounded">${inputRGB.b.toFixed(4)}</code></li>`;
+        html += `</ul>`;
+
+        const netJSON = net.toJSON(); 
+        if (netJSON && netJSON.layers) {
+            html += `<h4 class="font-semibold text-lg mt-4 mb-2 text-indigo-600">Estructura de la Red:</h4>`;
+            html += `<p>Tipo: ${netJSON.type}</p>`;
+            html += `<p>Capas Ocultas: ${netJSON.options.hiddenLayers ? netJSON.options.hiddenLayers.join(', ') : 'N/A'} neuronas</p>`;
+            html += `<p>Función de Activación: ${netJSON.options.activation}</p>`;
+        }
+        html += `</div>`;
+
+        // Columna 2: Probabilidades de Salida
+        html += `<div class="bg-white p-4 rounded-lg shadow">`;
+        html += `<h4 class="font-semibold text-lg mb-2 text-purple-600">Probabilidades de Salida:</h4>`;
+        html += `<ul class="space-y-1 max-h-48 overflow-y-auto">`;
+        Object.entries(outputProbabilities)
+            .sort(([,a],[,b]) => b - a) 
+            .forEach(([label, probability]) => {
+                const isPredicted = label === predictedLabel;
+                html += `<li class="${isPredicted ? 'font-bold text-purple-700' : ''}">
+                            ${label}: <code class="bg-purple-100 px-1 rounded">${formatProbability(probability)}</code>
+                            ${isPredicted ? '<span class="text-xs text-purple-500 ml-1">(Predicción Principal)</span>' : ''}
+                         </li>`;
+        });
+        html += `</ul>`;
+        html += `</div>`;
+        html += `</div>`; 
+
+        // Nota sobre los cálculos internos
+        html += `<div class="mt-6 bg-yellow-50 border border-yellow-300 p-4 rounded-lg shadow-sm">
+                    <h4 class="font-semibold text-yellow-700 mb-2">¿Cómo funciona (simplificado)?</h4>
+                    <p class="text-sm text-yellow-600">
+                        1. El color de entrada (RGB) se normaliza (valores entre 0 y 1).<br>
+                        2. Estos valores pasan por las neuronas de entrada.<br>
+                        3. Cada conexión entre neuronas tiene un 'peso'. Los valores se multiplican por estos pesos y se suman en la siguiente neurona.<br>
+                        4. Se aplica una 'función de activación' (ej. Sigmoid) para decidir la 'fuerza' de la señal de esa neurona.<br>
+                        5. Esto se repite a través de las capas ocultas hasta llegar a la capa de salida.<br>
+                        6. La capa de salida da una probabilidad para cada etiqueta posible. La etiqueta con la mayor probabilidad es la predicción.
+                    </p>
+                    <p class="text-xs text-yellow-500 mt-2">
+                        Mostrar los pesos y biases exactos de cada neurona para esta predicción específica es complejo sin recalcular manualmente o acceder a estados intermedios que brain.js no expone fácilmente después de 'run()'. La sección 'Pesos de las Conexiones' muestra los pesos generales de la red entrenada.
+                    </p>
+                 </div>`;
+        detailsDiv.innerHTML = html;
+    }
+
+    // Agrega un nuevo ejemplo de entrenamiento y actualiza la UI
+    function agregarEntrenamientoYActualizarUI() {
+      const hex = document.getElementById("newColor").value;
+      const labelInput = document.getElementById("newLabel");
+      const label = labelInput.value.trim().toLowerCase(); 
+
+      if (!label) {
+        const tempMsg = document.createElement('p');
+        tempMsg.textContent = "Debes ingresar una etiqueta para el color.";
+        tempMsg.className = "text-red-500 text-sm mt-2";
+        labelInput.parentNode.appendChild(tempMsg);
+        setTimeout(() => tempMsg.remove(), 3000);
+        return;
+      }
+
+      etiquetasUnicas.add(label);
+
+      const input = hexToRgbNorm(hex);
+      const output = {};
+      output[label] = 1; 
+
+      trainingData.push({ input, output });
+      
+      console.log("Nuevos datos de entrenamiento:", { input, output });
+      console.log("Todas las etiquetas únicas:", Array.from(etiquetasUnicas));
+
+      entrenarRed(); 
+      actualizarListaEntrenamientoVisual(); // Actualiza el UL de colores entrenados
+      predecirYActualizarUI(); 
+      visualizarEstructuraRed();
+      visualizarPesosConexiones();
+      generarVisualizacionInteractivaRed(); 
+      
+      labelInput.value = "";
+    }
+
+    // Actualiza la lista visual de colores entrenados en la UI
+    function actualizarListaEntrenamientoVisual() {
+      const ul = document.getElementById("trainList");
+      ul.innerHTML = ''; // Limpiar lista actual
+      trainingData.forEach((item, index) => {
+        const r = Math.round(item.input.r * 255);
+        const g = Math.round(item.input.g * 255);
+        const b = Math.round(item.input.b * 255);
+        const colorHex = `rgb(${r},${g},${b})`;
+        
+        const tag = Object.keys(item.output).find(key => item.output[key] === 1) || "desconocida";
+        
+        const li = document.createElement("li");
+        li.className = "flex justify-between items-center p-2 even:bg-gray-50 rounded";
+        li.innerHTML = `
+          <div>
+            <span class="inline-block text-xs font-semibold px-2 py-1 leading-none text-center whitespace-nowrap align-baseline bg-teal-200 text-teal-800 rounded-full">${tag}</span>
+            <span class="mx-2 text-gray-400">→</span>
+            <span style="background-color:${colorHex}; padding: 0px 8px; border-radius:5px; display: inline-block; width: 18px; height:18px; border:1px solid #ccc; vertical-align:middle;"></span>
+            <span class="ml-2 text-sm font-mono">${colorHex}</span>
+          </div>
+          <button onclick="eliminarEntrenamiento(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Eliminar</button>
+        `;
+        ul.appendChild(li);
+      });
+    }
+    
+    // Elimina un ejemplo de entrenamiento y actualiza la UI
+    function eliminarEntrenamiento(index) {
+        if (index < 0 || index >= trainingData.length) return;
+
+        trainingData.splice(index, 1);
+        
+        // Recalcular etiquetasUnicas
+        etiquetasUnicas.clear();
+        trainingData.forEach(item => {
+            Object.keys(item.output).forEach(tag => {
+                if (item.output[tag] === 1) etiquetasUnicas.add(tag);
+            });
+        });
+
+        if (trainingData.length > 0) {
+            entrenarRed();
+        } else {
+            net = null; 
+            console.log("Todos los datos de entrenamiento eliminados. La red ha sido reseteada.");
+        }
+        
+        actualizarListaEntrenamientoVisual(); // Actualiza el UL de colores entrenados
+        predecirYActualizarUI(); 
+        visualizarEstructuraRed();
+        visualizarPesosConexiones();
+        generarVisualizacionInteractivaRed();
+    }
+
+    // Visualiza la estructura básica de la red (número de neuronas por capa)
+    function visualizarEstructuraRed() {
+      const div = document.getElementById("redVisual");
+      if (!net || !net.toJSON) {
+        div.innerHTML = "<p class='text-gray-500'>La red aún no ha sido entrenada o no es válida.</p>";
+        return;
+      }
+      const json = net.toJSON();
+      div.innerHTML = `<h3 class="text-lg font-semibold mb-3 text-gray-600">Capas de la Red:</h3>`;
+
+      if (json && json.layers) {
+        json.layers.forEach((layer, index) => {
+          const layerDiv = document.createElement("div");
+          layerDiv.className = "mb-4 p-3 bg-gray-100 rounded-md shadow";
+          
+          let layerType = '';
+          if (index === 0) layerType = 'Entrada';
+          else if (index === json.layers.length - 1) layerType = 'Salida';
+          else layerType = `Oculta ${index}`;
+
+          const neuronCount = Object.keys(layer).length;
+          layerDiv.innerHTML = `<strong class="text-gray-700">Capa ${layerType}:</strong> ${neuronCount} neuronas`;
+          
+          const neuronsViz = Object.keys(layer).map(() => {
+            return `<div class="inline-block p-2 m-1 bg-blue-500 text-white text-xs rounded-full w-8 h-8 flex items-center justify-center shadow">N</div>`;
+          }).join("");
+          
+          layerDiv.innerHTML += `<div class="mt-2 flex flex-wrap justify-center">${neuronsViz}</div>`;
+          div.appendChild(layerDiv);
+        });
+      } else {
+         div.innerHTML = "<p class='text-gray-500'>No se pudo cargar la estructura de la red.</p>";
+      }
+    }
+    
+    // Genera y muestra una visualización SVG interactiva de la red neuronal
+    function generarVisualizacionInteractivaRed() {
+        const container = document.getElementById("interactiveNetworkVisualization");
+        container.innerHTML = ''; 
+
+        if (!net || !net.toJSON) {
+            container.innerHTML = "<p class='text-gray-500 text-center'>La red no está entrenada. Agrega datos y entrena para ver la visualización.</p>";
+            return;
+        }
+
+        const json = net.toJSON();
+        if (!json || !json.layers || json.layers.length === 0) {
+            container.innerHTML = "<p class='text-gray-500 text-center'>Estructura de red no disponible.</p>";
+            return;
+        }
+
+        const layerSizes = json.layers.map(layer => Object.keys(layer).length);
+        const numLayers = layerSizes.length;
+
+        const svgWidth = Math.min(container.clientWidth || 600, 800); 
+        const svgHeight = Math.max(300, numLayers * 60 + Math.max(...layerSizes) * 25); // Ajustada para mejor espaciado
+
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", svgWidth);
+        svg.setAttribute("height", svgHeight);
+        svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+        
+        const layerMarginHorizontal = svgWidth / (numLayers +1) ; // Espaciado horizontal más dinámico
+        const neuronRadius = 10; // Ligeramente más pequeño para más neuronas
+        
+        const verticalSpacingFactor = 3; // Aumentar para más espacio vertical entre neuronas
+
+        const calculateNodeY = (numNodesInLayer, nodeIndex, layerHeight) => {
+            const totalNodeHeight = numNodesInLayer * neuronRadius * 2;
+            const totalSpacing = (numNodesInLayer - 1) * neuronRadius * verticalSpacingFactor * 0.5; // Espacio entre nodos
+            const contentHeight = totalNodeHeight + totalSpacing;
+            const startY = (layerHeight - contentHeight) / 2;
+            return startY + nodeIndex * (neuronRadius * 2 + neuronRadius * verticalSpacingFactor * 0.5) + neuronRadius;
+        };
+        
+        const layerX = (layerIndex) => layerMarginHorizontal * (layerIndex + 1);
+
+        let allNodes = []; 
+
+        json.layers.forEach((layer, lIndex) => {
+            const numNeurons = Object.keys(layer).length;
+            const currentLayerX = layerX(lIndex);
+            
+            Object.keys(layer).forEach((neuronKey, nIndex) => {
+                const cx = currentLayerX;
+                const cy = calculateNodeY(numNeurons, nIndex, svgHeight);
+                
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", cx);
+                circle.setAttribute("cy", cy);
+                circle.setAttribute("r", neuronRadius);
+                
+                let nodeClass = "neuron-node ";
+                if (lIndex === 0) nodeClass += "input-node";
+                else if (lIndex === numLayers - 1) nodeClass += "output-node";
+                else nodeClass += "hidden-node";
+                circle.setAttribute("class", nodeClass);
+                
+                svg.appendChild(circle);
+                allNodes.push({ x: cx, y: cy, layerIndex: lIndex, neuronIndex: nIndex });
+            });
+        });
+        
+        for (let lIndex = 0; lIndex < numLayers - 1; lIndex++) {
+            const currentLayerNodes = allNodes.filter(n => n.layerIndex === lIndex);
+            const nextLayerNodes = allNodes.filter(n => n.layerIndex === lIndex + 1);
+
+            currentLayerNodes.forEach(startNode => {
+                nextLayerNodes.forEach(endNode => {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", startNode.x);
+                    line.setAttribute("y1", startNode.y);
+                    line.setAttribute("x2", endNode.x);
+                    line.setAttribute("y2", endNode.y);
+                    line.setAttribute("class", "neuron-connection");
+                    svg.insertBefore(line, svg.firstChild); 
+                });
+            });
+        }
+        container.appendChild(svg);
+    }
+
+    // Muestra los pesos de las conexiones de la red en la UI
+    function visualizarPesosConexiones() {
+      const div = document.getElementById("visualizacion-pesos");
+      div.innerHTML = ""; 
+
+      if (!net || !net.toJSON) {
+        div.innerHTML = "<p class='text-gray-500 text-center'>La red no está entrenada. Agrega datos y entrena para ver los pesos.</p>";
+        return;
+      }
+      const redJSON = net.toJSON();
+
+      if (!redJSON || !redJSON.layers) {
+        div.innerHTML = "<p class='text-gray-500 text-center'>No se pudo cargar la información de los pesos.</p>";
+        return;
+      }
+
+      redJSON.layers.forEach((layer, layerIndex) => {
+        if (layerIndex === 0 && Object.values(layer)[0] && Object.values(layer)[0].weights === undefined) {
+            const capaHTML = document.createElement("div");
+            capaHTML.className = "mb-6 p-4 bg-white rounded-lg shadow-md";
+            const titulo = document.createElement("h3");
+            titulo.className = "text-xl font-semibold mb-3 text-gray-700";
+            titulo.innerText = `Capa de Entrada (Capa ${layerIndex})`;
+            capaHTML.appendChild(titulo);
+            capaHTML.innerHTML += `<p class="text-sm text-gray-600">Esta es la capa de entrada. Las neuronas aquí representan los valores RGB del color (R, G, B).</p>`;
+            div.appendChild(capaHTML);
+            return;
+        }
+
+        const capaHTML = document.createElement("div");
+        capaHTML.className = "mb-6 p-4 bg-white rounded-lg shadow-md";
+        
+        const titulo = document.createElement("h3");
+        titulo.className = "text-xl font-semibold mb-3 text-gray-700";
+        titulo.innerText = `Capa ${layerIndex} ${layerIndex > 0 && layerIndex < redJSON.layers.length -1 ? '(Oculta)' : layerIndex === redJSON.layers.length -1 ? '(Salida)' : ''}`;
+        capaHTML.appendChild(titulo);
+
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4";
+
+        Object.entries(layer).forEach(([neuronKey, neuronData], i) => {
+          const neuronaDiv = document.createElement("div");
+          neuronaDiv.className = "p-3 bg-gray-50 rounded-md border border-gray-200";
+          
+          let neuronaNombre = `Neurona ${i}`; 
+          if (layerIndex === redJSON.layers.length -1) { 
+             const outputLabels = Array.from(etiquetasUnicas);
+             if (outputLabels[i]) {
+                 neuronaNombre = `Neurona de Salida: ${outputLabels[i]}`;
+             } else {
+                 neuronaNombre = `Neurona de Salida ${i}`;
+             }
+          }
+
+          neuronaDiv.innerHTML = `<strong class="block text-sm font-medium text-indigo-600 mb-1">${neuronaNombre}</strong>`;
+
+          if (neuronData.bias !== undefined) {
+            neuronaDiv.innerHTML += `<div class="text-xs text-gray-600">🎯 Bias: <code class="bg-gray-200 px-1 rounded">${neuronData.bias.toFixed(4)}</code></div>`;
+          }
+
+          if (neuronData.weights) {
+            const pesosHTML = Object.entries(neuronData.weights)
+              .map(([fromNeuronIndex, weight]) => {
+                let fromLabel = `desde Neurona ${fromNeuronIndex} (Capa ${layerIndex-1})`;
+                if (layerIndex === 1) { 
+                    const inputNames = ['R', 'G', 'B'];
+                    fromLabel = `desde ${inputNames[fromNeuronIndex] || `Entrada ${fromNeuronIndex}`}`;
+                }
+                return `<li class="text-xs text-gray-600">↳ ${fromLabel}: <code class="bg-gray-200 px-1 rounded">${weight.toFixed(4)}</code></li>`;
+              })
+              .join("");
+            neuronaDiv.innerHTML += `<ul class="mt-1 space-y-0.5">${pesosHTML}</ul>`;
+          } else if (layerIndex > 0) { 
+             neuronaDiv.innerHTML += `<p class="text-xs text-gray-500 mt-1">No hay pesos de entrada.</p>`;
+          }
+          grid.appendChild(neuronaDiv);
+        });
+        capaHTML.appendChild(grid);
+        div.appendChild(capaHTML);
+      });
+    }
+
+    // --- Inicialización al cargar la página ---
+    window.onload = () => {
+      entrenarRed();
+      actualizarListaEntrenamientoVisual();
+      predecirYActualizarUI();
+      visualizarEstructuraRed();
+      visualizarPesosConexiones();
+      generarVisualizacionInteractivaRed(); 
+      
+      window.addEventListener('resize', generarVisualizacionInteractivaRed);
+    };
+  </script>
+
+</body>
+</html>

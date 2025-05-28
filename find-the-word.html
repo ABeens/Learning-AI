@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Asociación de Palabras Avanzado</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f6; /* Un gris muy claro y suave */
+            margin-top: 20px;
+            color: #333;
+            line-height: 1.6;
+        }
+        #game-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50; /* Azul oscuro petróleo */
+            margin-bottom: 25px;
+        }
+        #context-words-area h2 {
+            margin-top: 0;
+            color: #34495e; /* Azul grisáceo */
+            font-size: 1.5em; /* Ajustado para mejor lectura */
+            margin-bottom: 15px;
+        }
+        #context-words-list {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px; /* Espacio entre "píldoras" */
+        }
+        #context-words-list li {
+            background-color: #e0eafc; /* Azul bebé muy claro */
+            padding: 10px 18px;
+            border-radius: 25px; /* Forma de píldora más pronunciada */
+            font-size: 1.15em;
+            color: #2c3e50; /* Azul oscuro petróleo para el texto */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease-out;
+        }
+        #context-words-list li:hover {
+            transform: translateY(-2px);
+        }
+        #input-area {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #user-word-input {
+            padding: 14px;
+            font-size: 1.1em;
+            border: 2px solid #bdc3c7; /* Gris neutro */
+            border-radius: 8px;
+            width: 65%;
+            max-width: 320px;
+            transition: border-color 0.3s ease;
+        }
+        #user-word-input:focus {
+            outline: none;
+            border-color: #3498db; /* Azul brillante al enfocar */
+        }
+        #submit-button, #start-button, #next-round-button {
+            padding: 14px 22px;
+            font-size: 1.1em;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        #submit-button:hover:not(:disabled), 
+        #start-button:hover:not(:disabled), 
+        #next-round-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        #start-button { background-color: #1abc9c; /* Turquesa */ }
+        #start-button:hover { background-color: #16a085; /* Turquesa oscuro */ }
+        
+        #submit-button { background-color: #3498db; /* Azul brillante */ }
+        #submit-button:hover:not(:disabled) { background-color: #2980b9; /* Azul más oscuro */ }
+        #submit-button:disabled { background-color: #aab8c2; cursor: not-allowed; }
+
+        #next-round-button { background-color: #2ecc71; /* Verde esmeralda */ }
+        #next-round-button:hover:not(:disabled) { background-color: #27ae60; /* Verde más oscuro */ }
+        #next-round-button:disabled { background-color: #95a5a6; /* Gris para deshabilitado */ }
+
+        #feedback-area {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ecf0f1; /* Gris muy claro */
+            border-radius: 8px;
+            border-left: 6px solid #3498db; /* Acento azul */
+            text-align: left;
+        }
+        .feedback-text { margin-top: 8px; font-size: 1.05em; color: #555; }
+        #possible-answers-area { margin-top: 15px; font-size: 0.95em; }
+        #possible-answers-area p { font-weight: bold; color: #34495e; }
+        #possible-answers-area ul { list-style-type: disc; margin-left: 25px; padding-left: 0;}
+        #possible-answers-area li { margin-bottom: 5px; }
+
+        #score-area { margin-top: 25px; font-size: 1.4em; font-weight: bold; color: #2c3e50; }
+        
+        #final-summary {
+            margin-top: 30px; padding: 25px; background-color: #e8f6f3; /* Verde menta muy claro */
+            border: 1px solid #d0e9e4; border-radius: 10px; text-align: left;
+        }
+        #final-summary h3 { color: #16a085; /* Turquesa oscuro */ text-align: center; font-size: 1.6em; }
+        #final-summary ul { list-style-type: none; padding: 0; }
+        #final-summary li {
+            background-color: #fff; margin-bottom: 12px; padding: 15px;
+            border-radius: 6px; border: 1px solid #ddd; font-size: 1em;
+            line-height: 1.5;
+        }
+        #final-summary li strong { color: #2c3e50; }
+        #final-summary li em { color: #3498db; }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Adivina la Conexión Secreta</h1>
+
+        <div id="context-words-area" style="display:none;">
+            <h2>Considera esta lista de palabras:</h2>
+            <ul id="context-words-list"></ul>
+            <p>Escribe una palabra que conecte o englobe a TODAS ellas:</p>
+        </div>
+
+        <div id="input-area" style="display:none;">
+            <input type="text" id="user-word-input" placeholder="Tu palabra clave...">
+            <button id="submit-button">Enviar</button>
+        </div>
+
+        <div id="feedback-area" style="display:none;">
+            <p class="feedback-text">Tu palabra enviada: <strong id="user-submitted-word"></strong></p>
+            <p class="feedback-text">Puntos obtenidos en esta ronda: <strong id="round-points"></strong></p>
+            <div id="possible-answers-area" style="display:none;">
+                <p>Algunas respuestas posibles (y sus puntos):</p>
+                <ul id="possible-answers-list"></ul>
+            </div>
+        </div>
+
+        <div id="score-area" style="display:none;">
+            <p>Puntuación Total: <span id="total-score">0</span></p>
+        </div>
+
+        <button id="next-round-button" style="display:none;">Siguiente Ronda</button>
+        <button id="start-button">Comenzar Juego</button>
+
+        <div id="final-summary" style="display:none;">
+            <h3>¡Juego Terminado!</h3>
+            <p style="text-align:center; font-size: 1.3em; margin-bottom:20px;">Puntuación Final Total: <strong id="final-total-score"></strong></p>
+            <h4>Resumen de tus selecciones:</h4>
+            <ul id="selection-summary-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const wordSets = [
+            {
+                contextWords: ["PLAYA", "ARENA", "OLAS", "SOL", "MAR"],
+                relatedAnswers: [
+                    { word: "VERANO", weight: 10 }, { word: "VACACIONES", weight: 8 },
+                    { word: "NADAR", weight: 6 }, { word: "BRONCEADO", weight: 5 },
+                    { word: "RELAX", weight: 4 }, { word: "COSTA", weight: 3}
+                ]
+            },
+            {
+                contextWords: ["LIBRO", "LEER", "HISTORIA", "PÁGINAS", "CONOCIMIENTO"],
+                relatedAnswers: [
+                    { word: "BIBLIOTECA", weight: 10 }, { word: "AUTOR", weight: 8 },
+                    { word: "NOVELA", weight: 7 }, { word: "APRENDER", weight: 6 },
+                    { word: "IMAGINACION", weight: 5 }, { word: "SABIDURIA", weight: 4} // Normalizado sin tilde
+                ]
+            },
+            {
+                contextWords: ["FIESTA", "MÚSICA", "AMIGOS", "BAILAR", "CELEBRACIÓN"],
+                relatedAnswers: [
+                    { word: "ALEGRIA", weight: 10 }, { word: "DIVERSION", weight: 9 }, // Normalizado
+                    { word: "CUMPLEAÑOS", weight: 7 }, { word: "NOCHE", weight: 6 },
+                    { word: "EVENTO", weight: 5 }, { word: "BAILE", weight: 4 }
+                ]
+            },
+            {
+                contextWords: ["MONTAÑA", "ÁRBOLES", "SENDERO", "CIMA", "EXCURSIÓN"],
+                relatedAnswers: [
+                    { word: "NATURALEZA", weight: 10 }, { word: "SENDERISMO", weight: 9 },
+                    { word: "CAMINAR", weight: 8 }, { word: "PAISAJE", weight: 7 }, 
+                    { word: "AIRE", weight: 6 }, { word: "AVENTURA", weight: 5 }
+                ]
+            },
+            {
+                contextWords: ["COCINA", "RECETA", "INGREDIENTES", "SABOR", "COMIDA"],
+                relatedAnswers: [
+                    { word: "CHEF", weight: 10 }, { word: "COCINAR", weight: 9 },
+                    { word: "RESTAURANTE", weight: 8 }, { word: "GASTRONOMIA", weight: 7 }, // Normalizado
+                    { word: "ALIMENTO", weight: 6 }, { word: "DELICIOSO", weight: 5 }
+                ]
+            }
+        ];
+
+        let currentRound = 0;
+        let totalScore = 0;
+        const userSelections = [];
+
+        const contextWordsAreaEl = document.getElementById('context-words-area');
+        const contextWordsListEl = document.getElementById('context-words-list');
+        const inputAreaEl = document.getElementById('input-area');
+        const userWordInputEl = document.getElementById('user-word-input');
+        const submitButton = document.getElementById('submit-button');
+
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const userSubmittedWordEl = document.getElementById('user-submitted-word');
+        const roundPointsEl = document.getElementById('round-points');
+        const possibleAnswersAreaEl = document.getElementById('possible-answers-area');
+        const possibleAnswersListEl = document.getElementById('possible-answers-list');
+
+        const totalScoreEl = document.getElementById('total-score');
+        const scoreAreaEl = document.getElementById('score-area');
+        const nextRoundButton = document.getElementById('next-round-button');
+        const startButton = document.getElementById('start-button');
+        const finalSummaryEl = document.getElementById('final-summary');
+        const finalTotalScoreEl = document.getElementById('final-total-score');
+        const selectionSummaryListEl = document.getElementById('selection-summary-list');
+
+        function normalizeWord(word) {
+            if (typeof word !== 'string') return '';
+            return word.trim().toUpperCase()
+                       .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Elimina acentos
+        }
+        
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            contextWordsAreaEl.style.display = 'block';
+            inputAreaEl.style.display = 'flex';
+            scoreAreaEl.style.display = 'block';
+            loadRound(currentRound);
+        });
+
+        function loadRound(roundIndex) {
+            feedbackAreaEl.style.display = 'none';
+            possibleAnswersAreaEl.style.display = 'none';
+            nextRoundButton.style.display = 'none';
+            userWordInputEl.value = '';
+            userWordInputEl.disabled = false;
+            submitButton.disabled = false;
+
+            if (roundIndex >= wordSets.length) {
+                endGame();
+                return;
+            }
+
+            const currentSet = wordSets[roundIndex];
+            contextWordsListEl.innerHTML = '';
+            currentSet.contextWords.forEach(word => {
+                const listItem = document.createElement('li');
+                listItem.textContent = word;
+                contextWordsListEl.appendChild(listItem);
+            });
+            userWordInputEl.focus();
+        }
+
+        submitButton.addEventListener('click', processUserSubmission);
+        userWordInputEl.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !submitButton.disabled) {
+                processUserSubmission();
+            }
+        });
+
+        function processUserSubmission() {
+            const rawUserWord = userWordInputEl.value;
+            if (!rawUserWord.trim()) {
+                alert("Por favor, escribe una palabra.");
+                return;
+            }
+            const userWordNormalized = normalizeWord(rawUserWord);
+            userWordInputEl.disabled = true;
+            submitButton.disabled = true;
+
+            const currentSet = wordSets[currentRound];
+            let pointsThisRound = 0;
+            let matchedAnswerDetails = null;
+
+            for (const ans of currentSet.relatedAnswers) {
+                if (normalizeWord(ans.word) === userWordNormalized) {
+                    pointsThisRound = ans.weight;
+                    matchedAnswerDetails = ans;
+                    break;
+                }
+            }
+
+            totalScore += pointsThisRound;
+            userSelections.push({
+                contextWords: currentSet.contextWords.join(', '),
+                chosenWord: rawUserWord, 
+                pointsEarned: pointsThisRound
+            });
+
+            userSubmittedWordEl.textContent = rawUserWord;
+            roundPointsEl.textContent = pointsThisRound;
+            totalScoreEl.textContent = totalScore;
+            feedbackAreaEl.style.display = 'block';
+
+            possibleAnswersListEl.innerHTML = '';
+            const sortedAnswers = [...currentSet.relatedAnswers].sort((a, b) => b.weight - a.weight);
+            sortedAnswers.forEach(ans => {
+                const li = document.createElement('li');
+                li.textContent = `${ans.word} (${ans.weight} pts)`;
+                if (matchedAnswerDetails && normalizeWord(ans.word) === normalizeWord(matchedAnswerDetails.word)) {
+                    li.style.fontWeight = 'bold';
+                    li.style.color = '#27ae60'; // Verde para la respuesta acertada
+                } else if (pointsThisRound === 0 && ans.weight === sortedAnswers[0].weight && sortedAnswers.length > 0) {
+                     // Podrías destacar la mejor si el usuario no la acertó
+                }
+                possibleAnswersListEl.appendChild(li);
+            });
+            possibleAnswersAreaEl.style.display = 'block';
+
+            if (currentRound < wordSets.length - 1) {
+                nextRoundButton.textContent = 'Siguiente Ronda';
+            } else {
+                nextRoundButton.textContent = 'Ver Resultados Finales';
+            }
+            nextRoundButton.style.display = 'block';
+            nextRoundButton.disabled = false;
+            nextRoundButton.focus(); // Ayuda a la navegación con teclado
+        }
+
+        nextRoundButton.addEventListener('click', () => {
+            currentRound++;
+            nextRoundButton.disabled = true;
+            loadRound(currentRound);
+        });
+
+        function endGame() {
+            contextWordsAreaEl.style.display = 'none';
+            inputAreaEl.style.display = 'none';
+            feedbackAreaEl.style.display = 'none';
+            scoreAreaEl.style.display = 'none';
+            nextRoundButton.style.display = 'none';
+
+            finalTotalScoreEl.textContent = totalScore;
+            selectionSummaryListEl.innerHTML = '';
+
+            userSelections.forEach(selection => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `Para el conjunto de palabras [<em>${selection.contextWords}</em>], tu palabra fue "<strong>${selection.chosenWord}</strong>" y obtuviste <strong>${selection.pointsEarned}</strong> puntos.`;
+                selectionSummaryListEl.appendChild(listItem);
+            });
+
+            finalSummaryEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

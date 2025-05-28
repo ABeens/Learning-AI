@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descifrador de Patrones AI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #eef1f5; /* Un fondo gris azulado muy claro */
+            margin: 0;
+            padding-top: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        #game-container {
+            background-color: #ffffff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            width: 90%;
+            max-width: 650px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50; /* Azul petróleo oscuro */
+            margin-bottom: 10px;
+        }
+        #intro-text {
+            color: #555;
+            margin-bottom: 25px;
+            font-size: 1.05em;
+        }
+        #sequence-area h2 {
+            margin-top: 0;
+            color: #34495e; /* Azul grisáceo */
+            font-size: 1.4em;
+            margin-bottom: 8px;
+        }
+        #sequence-display {
+            font-size: 1.8em; /* Más grande para la secuencia */
+            font-weight: bold;
+            color: #2980b9; /* Azul brillante */
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        #input-area {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #user-answer-input {
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ced4da; /* Borde gris claro */
+            border-radius: 8px;
+            width: 50%;
+            max-width: 200px;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        #user-answer-input:focus {
+            outline: none;
+            border-color: #3498db; /* Azul al enfocar */
+        }
+        #submit-button, #start-button, #next-round-button {
+            padding: 12px 20px;
+            font-size: 1.05em;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #submit-button:hover:not(:disabled), 
+        #start-button:hover:not(:disabled), 
+        #next-round-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        #start-button { background-color: #16a085; /* Turquesa */ }
+        #start-button:hover { background-color: #138d75; }
+        
+        #submit-button { background-color: #3498db; /* Azul brillante */ }
+        #submit-button:hover:not(:disabled) { background-color: #2980b9; }
+        #submit-button:disabled { background-color: #bdc3c7; cursor: not-allowed; opacity: 0.7; }
+
+        #next-round-button { background-color: #2ecc71; /* Verde esmeralda */ }
+        #next-round-button:hover:not(:disabled) { background-color: #27ae60; }
+        #next-round-button:disabled { background-color: #95a5a6; opacity: 0.7; }
+
+        #feedback-area {
+            margin-top: 25px;
+            padding: 18px;
+            background-color: #f0f3f4; /* Gris muy claro */
+            border-radius: 8px;
+            text-align: left;
+            border-left: 5px solid #1abc9c; /* Acento turquesa */
+        }
+        .feedback-text { margin: 8px 0; font-size: 1em; }
+        #feedback-result { font-weight: bold; }
+        #pattern-explanation { background-color: #e4e9eb; padding: 10px; border-radius: 5px; margin-top:10px; }
+
+        #score-area { margin-top: 20px; font-size: 1.3em; font-weight: bold; color: #2c3e50; }
+        
+        #final-summary {
+            margin-top: 25px; padding: 20px; background-color: #e6f7ff; /* Azul cielo muy pálido */
+            border: 1px solid #cce7ff; border-radius: 10px; text-align: left;
+        }
+        #final-summary h3 { color: #0056b3; /* Azul oscuro */ text-align: center; font-size: 1.5em; }
+        #final-summary ul { list-style-type: none; padding: 0; }
+        #final-summary li {
+            background-color: #fff; margin-bottom: 10px; padding: 12px;
+            border-radius: 6px; border: 1px solid #dfe6e9;
+            font-size: 0.95em; line-height: 1.5;
+        }
+        #final-summary li strong { color: #333; }
+        #final-summary li em { color: #2980b9; } /* Respuesta correcta */
+        #final-summary li .user-answer { color: #e74c3c; } /* Respuesta del usuario si es incorrecta */
+        #final-summary li .user-answer.correct { color: #27ae60; } /* Respuesta del usuario si es correcta */
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Descifrador de Patrones AI</h1>
+        <p id="intro-text">¡Bienvenido! Tu tarea es analizar secuencias y predecir el siguiente elemento, ¡como lo haría una IA!</p>
+
+        <div id="sequence-area" style="display:none;">
+            <h2>Completa la siguiente secuencia:</h2>
+            <p id="sequence-display"> </p>
+        </div>
+
+        <div id="input-area" style="display:none;">
+            <input type="text" id="user-answer-input" placeholder="Tu respuesta...">
+            <button id="submit-button">Enviar Respuesta</button>
+        </div>
+
+        <div id="feedback-area" style="display:none;">
+            <p class="feedback-text" id="feedback-result"></p>
+            <p class="feedback-text">Tu respuesta fue: <strong id="user-answer-feedback"></strong></p>
+            <p class="feedback-text">La respuesta correcta era: <strong id="correct-answer-feedback"></strong></p>
+            <div id="pattern-explanation">
+                <strong>Explicación del patrón:</strong>
+                <p id="pattern-explanation-text"></p>
+            </div>
+        </div>
+
+        <div id="score-area" style="display:none;">
+            <p>Puntuación Total: <span id="total-score">0</span></p>
+        </div>
+
+        <button id="next-round-button" style="display:none;">Siguiente Patrón</button>
+        <button id="start-button">Comenzar a Descifrar</button>
+
+        <div id="final-summary" style="display:none;">
+            <h3>¡Has completado el desafío!</h3>
+            <p style="text-align:center; font-size: 1.2em; margin-bottom:15px;">Puntuación Final: <strong id="final-total-score"></strong></p>
+            <h4>Resumen de tus predicciones:</h4>
+            <ul id="selection-summary-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        const sequenceData = [
+            {
+                id: 1,
+                displaySequence: "2, 4, 6, 8",
+                correctAnswer: "10",
+                patternDescription: "Se suma 2 al número anterior.",
+                points: 10
+            },
+            {
+                id: 2,
+                displaySequence: "A, C, E, G",
+                correctAnswer: "I",
+                patternDescription: "Se salta una letra del abecedario.",
+                points: 10
+            },
+            {
+                id: 3,
+                displaySequence: "1, 1, 2, 3, 5",
+                correctAnswer: "8",
+                patternDescription: "Cada número es la suma de los dos anteriores (Secuencia de Fibonacci).",
+                points: 15
+            },
+            {
+                id: 4,
+                displaySequence: "Z, X, V, T",
+                correctAnswer: "R",
+                patternDescription: "Se salta una letra hacia atrás en el abecedario (R S T U V W X Y Z).",
+                points: 15
+            },
+            {
+                id: 5,
+                displaySequence: "3, 9, 27, 81", // Multiplicar por 3
+                correctAnswer: "243",
+                patternDescription: "Se multiplica el número anterior por 3.",
+                points: 15
+            },
+            {
+                id: 6,
+                displaySequence: "1, 4, 9, 16",
+                correctAnswer: "25",
+                patternDescription: "Son los números naturales elevados al cuadrado (1², 2², 3², 4²...).",
+                points: 15
+            },
+            {
+                id: 7,
+                displaySequence: "ROJO, NARANJA, AMARILLO",
+                correctAnswer: "VERDE",
+                patternDescription: "Sigue el orden de los colores primarios y secundarios (similar al arcoíris).",
+                points: 10
+            },
+            {
+                id: 8,
+                displaySequence: "100, 95, 90, 85",
+                correctAnswer: "80",
+                patternDescription: "Se resta 5 al número anterior.",
+                points: 10
+            }
+        ];
+
+        let currentRound = 0;
+        let totalScore = 0;
+        const userSelections = [];
+
+        const introTextEl = document.getElementById('intro-text');
+        const sequenceAreaEl = document.getElementById('sequence-area');
+        const sequenceDisplayEl = document.getElementById('sequence-display');
+        const inputAreaEl = document.getElementById('input-area');
+        const userAnswerInputEl = document.getElementById('user-answer-input');
+        const submitButton = document.getElementById('submit-button');
+
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const feedbackResultEl = document.getElementById('feedback-result');
+        const userAnswerFeedbackEl = document.getElementById('user-answer-feedback');
+        const correctAnswerFeedbackEl = document.getElementById('correct-answer-feedback');
+        const patternExplanationTextEl = document.getElementById('pattern-explanation-text');
+        
+        const scoreAreaEl = document.getElementById('score-area');
+        const totalScoreEl = document.getElementById('total-score');
+        const nextRoundButton = document.getElementById('next-round-button');
+        const startButton = document.getElementById('start-button');
+        
+        const finalSummaryEl = document.getElementById('final-summary');
+        const finalTotalScoreEl = document.getElementById('final-total-score');
+        const selectionSummaryListEl = document.getElementById('selection-summary-list');
+
+        function normalizeAnswer(answer) {
+            if (typeof answer !== 'string') return '';
+            return answer.trim().toUpperCase();
+        }
+        
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none';
+            introTextEl.style.display = 'none';
+            sequenceAreaEl.style.display = 'block';
+            inputAreaEl.style.display = 'flex';
+            scoreAreaEl.style.display = 'block';
+            loadRound(currentRound);
+        });
+
+        function loadRound(roundIndex) {
+            feedbackAreaEl.style.display = 'none';
+            nextRoundButton.style.display = 'none';
+            userAnswerInputEl.value = '';
+            userAnswerInputEl.disabled = false;
+            submitButton.disabled = false;
+
+            if (roundIndex >= sequenceData.length) {
+                endGame();
+                return;
+            }
+
+            const currentSequence = sequenceData[roundIndex];
+            sequenceDisplayEl.innerHTML = `<strong>${currentSequence.displaySequence},</strong> <span style="color: #7f8c8d;">___</span>`;
+            userAnswerInputEl.focus();
+        }
+
+        submitButton.addEventListener('click', processUserAnswer);
+        userAnswerInputEl.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && !submitButton.disabled) {
+                processUserAnswer();
+            }
+        });
+
+        function processUserAnswer() {
+            const rawUserAnswer = userAnswerInputEl.value;
+            if (!rawUserAnswer.trim()) {
+                alert("Por favor, ingresa tu predicción para el patrón.");
+                return;
+            }
+            const normalizedUserAnswer = normalizeAnswer(rawUserAnswer);
+            userAnswerInputEl.disabled = true;
+            submitButton.disabled = true;
+
+            const currentSequence = sequenceData[currentRound];
+            const normalizedCorrectAnswer = normalizeAnswer(currentSequence.correctAnswer);
+            let pointsThisRound = 0;
+            let isCorrect = false;
+
+            if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                pointsThisRound = currentSequence.points;
+                totalScore += pointsThisRound;
+                feedbackResultEl.textContent = `¡Correcto! (+${pointsThisRound} puntos)`;
+                feedbackResultEl.style.color = '#27ae60'; // Verde
+                isCorrect = true;
+            } else {
+                feedbackResultEl.textContent = "¡Incorrecto!";
+                feedbackResultEl.style.color = '#e74c3c'; // Rojo
+            }
+            
+            totalScoreEl.textContent = totalScore;
+            userAnswerFeedbackEl.textContent = rawUserAnswer;
+            correctAnswerFeedbackEl.textContent = currentSequence.correctAnswer;
+            patternExplanationTextEl.textContent = currentSequence.patternDescription;
+            feedbackAreaEl.style.display = 'block';
+
+            userSelections.push({
+                sequence: currentSequence.displaySequence,
+                userAnswer: rawUserAnswer,
+                correctAnswer: currentSequence.correctAnswer,
+                pointsEarned: pointsThisRound,
+                isCorrect: isCorrect
+            });
+
+            if (currentRound < sequenceData.length - 1) {
+                nextRoundButton.textContent = 'Siguiente Patrón';
+            } else {
+                nextRoundButton.textContent = 'Ver Resultados Finales';
+            }
+            nextRoundButton.style.display = 'block';
+            nextRoundButton.disabled = false;
+            nextRoundButton.focus();
+        }
+
+        nextRoundButton.addEventListener('click', () => {
+            currentRound++;
+            nextRoundButton.disabled = true;
+            loadRound(currentRound);
+        });
+
+        function endGame() {
+            sequenceAreaEl.style.display = 'none';
+            inputAreaEl.style.display = 'none';
+            feedbackAreaEl.style.display = 'none';
+            scoreAreaEl.style.display = 'none';
+            nextRoundButton.style.display = 'none';
+            introTextEl.style.display = 'none';
+
+
+            finalTotalScoreEl.textContent = totalScore;
+            selectionSummaryListEl.innerHTML = '';
+
+            userSelections.forEach(sel => {
+                const listItem = document.createElement('li');
+                const userAnswerClass = sel.isCorrect ? 'user-answer correct' : 'user-answer';
+                listItem.innerHTML = `Secuencia: <strong>${sel.sequence}, ___</strong><br>
+                                      Tu predicción: <span class="${userAnswerClass}">${sel.userAnswer}</span><br>
+                                      Respuesta correcta: <em>${sel.correctAnswer}</em><br>
+                                      Puntos: <strong>${sel.pointsEarned}</strong>`;
+                selectionSummaryListEl.appendChild(listItem);
+            });
+
+            finalSummaryEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
