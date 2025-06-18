@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aventura Extendida</title>
+<style>
+body, html {
+height: 100%;
+margin: 0;
+overflow: hidden; /* Evita barras de desplazamiento /
+background-color: #a7d9ed; / Fondo de cielo /
+display: flex;
+justify-content: center;
+align-items: center;
+font-family: 'Arial', sans-serif;
+color: #333;
+}
+#game-container {
+position: relative;
+width: 100%;
+height: 100%;
+background: linear-gradient(to bottom, #70c1b3, #247ba0); / Degradado de suelo /
+}
+#player {
+position: absolute;
+width: 60px;
+height: 90px;
+bottom: 20px;
+left: 50%;
+transform: translateX(-30px); / Centrar horizontalmente /
+background-image: url('./player.png'); / Reemplaza con tu imagen /
+background-size: contain;
+background-repeat: no-repeat;
+}
+.npc {
+position: absolute;
+width: 80px;
+height: 120px;
+bottom: 20px;
+background-size: contain;
+background-repeat: no-repeat;
+cursor: pointer; / Indica que son interactivos /
+}
+#npc1 {
+left: 20%;
+background-image: url('./npc1.png'); / Reemplaza con tu imagen /
+}
+#npc2 {
+right: 20%;
+background-image: url('./npc2.png'); / Reemplaza con tu imagen /
+}
+#dialog-container {
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+background: rgba(0, 0, 0, 0.7);
+color: white;
+padding: 20px;
+box-sizing: border-box;
+display: none; / Oculto por defecto */
+flex-direction: column;
+align-items: center;
+}
+#speaker {
+font-weight: bold;
+margin-bottom: 10px;
+}
+#dialog-text {
+font-size: 1.1em;
+margin-bottom: 15px;
+text-align: center;
+}
+.dialog-option {
+background-color: #555;
+color: white;
+border: none;
+padding: 10px 20px;
+margin: 5px;
+border-radius: 5px;
+cursor: pointer;
+font-size: 1em;
+}
+.dialog-option:hover {
+background-color: #777;
+}
+</style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="player"></div>
+    <div id="npc1" class="npc" onclick="startDialog('npc1')"></div>
+    <div id="npc2" class="npc" onclick="startDialog('npc2')"></div>
+</div>
+
+<div id="dialog-container">
+    <div id="speaker"></div>
+    <div id="dialog-text"></div>
+    <div id="dialog-options"></div>
+    <button onclick="continueDialog()" id="continue-button" style="display: none;">Continuar</button>
+</div>
+
+<script>
+    const gameContainer = document.getElementById('game-container');
+    const player = document.getElementById('player');
+    const npcs = document.querySelectorAll('.npc');
+    const dialogContainer = document.getElementById('dialog-container');
+    const speakerElement = document.getElementById('speaker');
+    const dialogTextElement = document.getElementById('dialog-text');
+    const dialogOptionsElement = document.getElementById('dialog-options');
+    const continueButton = document.getElementById('continue-button');
+
+    let playerX = gameContainer.offsetWidth / 2 - 30; // Centrar al inicio
+    const playerSpeed = 15;
+    let inDialog = false;
+    let currentDialog = null;
+    let currentDialogIndex = 0;
+    let currentSpeaker = null;
+
+    const gameDialogs = {
+        npc1: {
+            name: "Guardia Real",
+            lines: [
+                { text: "¿Alto ahí! ¿Qué haces tan cerca del castillo?", options: [
+                    { text: "Solo estoy de visita.", next: 1 },
+                    { text: "¿Hay algún problema?", next: 2 }
+                ]},
+                { text: "Las visitas no están permitidas sin invitación.", options: [
+                    { text: "Entiendo.", next: null, action: "endDialog" }
+                ]},
+                { text: "Se han reportado actividades sospechosas.", options: [
+                    { text: "¿Qué tipo de actividades?", next: 3 },
+                    { text: "No tengo nada que ver con eso.", next: 1 }
+                ]},
+                { text: "Movimientos extraños cerca de la torre oeste.", options: [
+                    { text: "Hmm, interesante.", next: null, action: "endDialog" }
+                ]}
+            ]
+        },
+        npc2: {
+            name: "Anciano Sabio",
+            lines: [
+                { text: "Joven viajero, pareces preocupado. ¿Qué te trae por estos lares?", options: [
+                    { text: "Busco respuestas.", next: 1 },
+                    { text: "Solo estoy explorando.", next: 2 }
+                ]},
+                { text: "Las respuestas a menudo se encuentran en los lugares menos esperados.", options: [
+                    { text: "¿Tienes alguna pista?", next: 3 },
+                    { text: "Gracias por el consejo.", next: null, action: "endDialog" }
+                ]},
+                { text: "Explorar es bueno para el alma. Pero ten cuidado con los peligros que acechan.", options: [
+                    { text: "Tendré cuidado.", next: null, action: "endDialog" }
+                ]},
+                { text: "Se dice que la llave está oculta donde el sol se encuentra con la piedra antigua.", options: [
+                    { text: "Una pista valiosa, gracias.", next: null, action: "endDialog" }
+                ]}
+            ]
+        }
+    };
+
+    document.addEventListener('keydown', (e) => {
+        if (inDialog) return;
+
+        if (e.key === 'ArrowLeft') {
+            playerX = Math.max(0, playerX - playerSpeed);
+        } else if (e.key === 'ArrowRight') {
+            playerX = Math.min(gameContainer.offsetWidth - player.offsetWidth, playerX + playerSpeed);
+        }
+        player.style.left = playerX + 'px';
+    });
+
+    function startDialog(npcId) {
+        if (inDialog) return;
+        inDialog = true;
+        currentSpeaker = npcId;
+        currentDialog = gameDialogs.hasOwnProperty(npcId) ? gameDialogs[`${npcId}`] : null;
+        currentDialogIndex = 0;
+
+        if (currentDialog) {
+            showDialogLine(currentDialog.lines [currentDialogIndex]);
+        } else {
+            console.error(`Diálogo no encontrado para ${npcId}`);
+            inDialog = false;
+        }
+    }
+
+    function showDialogLine(lineData) {
+        speakerElement.innerText = currentDialog.name;
+        dialogTextElement.innerText = lineData.text;
+        dialogOptionsElement.innerHTML = '';
+        continueButton.style.display = 'none';
+
+        if (lineData.options && lineData.options.length > 0) {
+            lineData.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.className = 'dialog-option';
+                button.onclick = () => {
+                    if (option.next !== null) {
+                        currentDialogIndex = option.next;
+                        showDialogLine(currentDialog.lines [currentDialogIndex]);
+                    } else if (option.action === 'endDialog') {
+                        endDialog();
+                    }
+                };
+                dialogOptionsElement.appendChild(button);
+            });
+        } else {
+            continueButton.style.display = 'block';
+        }
+
+        dialogContainer.style.display = 'flex';
+    }
+
+    function continueDialog() {
+        if (currentDialog && currentDialog.lines [currentDialogIndex].options === undefined) {
+            // Si no hay opciones, intenta avanzar al siguiente diálogo lineal
+            if (currentDialog.lines.length > currentDialogIndex + 1) {
+                currentDialogIndex++;
+                showDialogLine(currentDialog.lines [currentDialogIndex]);
+            } else {
+                endDialog();
+            }
+        }
+    }
+
+    function endDialog() {
+        inDialog = false;
+        currentDialog = null;
+        currentDialogIndex = 0;
+        currentSpeaker = null;
+        dialogContainer.style.display = 'none';
+    }
+
+    // Asegurar que el jugador se centre correctamente al inicio y en cambios de tamaño de ventana
+    window.addEventListener('resize', () => {
+        playerX = gameContainer.offsetWidth / 2 - 30;
+        player.style.left = playerX + 'px';
+    });
+</script>
+<body>
+</html>

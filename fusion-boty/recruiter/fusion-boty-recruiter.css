@@ -1,0 +1,96 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+}
+
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  flex-wrap: wrap;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.robot-section,
+.text-section {
+  flex: 1 1 300px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.robot-image {
+  max-width: 100%;
+  height: 500px;
+  display: block;
+  margin: 0 auto;
+}
+
+.text-section h1 {
+  font-size: 2rem;
+  color: #005bb5;
+  margin-bottom: 10px;
+}
+
+#typewriter {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin-bottom: 20px;
+}
+
+#next-button, #submit-name {
+  background-color: #005bb5;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#next-button:hover, #submit-name:hover {
+  background-color: #004494;
+}
+
+#name-input {
+  padding: 10px;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  .text-section {
+    text-align: center;
+  }
+
+  .text-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .robot-image {
+  height: 250px;
+}
+}

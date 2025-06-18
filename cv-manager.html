@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Dilema del Reclutador</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.5/dist/brain-browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500&display=swap');
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f4f4; color: #222; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        h1, h2, h3 { font-family: 'Merriweather', serif; }
+        h1 { font-size: 2.8em; margin-bottom: 0; color: #1a237e; }
+        h2 { font-size: 2em; }
+        .job-description { max-width: 650px; margin: 10px auto 25px auto; font-size: 1.1em; color: #555; font-style: italic; }
+        .container { background-color: #fff; padding: 30px 40px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.07); margin: 15px; width: 95%; max-width: 1000px; }
+        .candidate-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 20px; }
+        .candidate { border: 1px solid #e0e0e0; padding: 25px; border-radius: 8px; text-align: left; transition: all 0.3s ease; background: #fff; display: flex; flex-direction: column; }
+        .candidate:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        .candidate h3 { margin: 0 0 15px 0; color: #3949ab; font-size: 1.3em; }
+        .candidate p.bio { margin: 0; font-family: 'Merriweather', serif; font-size: 0.95em; line-height: 1.7; color: #333; flex-grow: 1; }
+        .candidate-btn { background-color: #1e88e5; color: white; border: none; padding: 12px 18px; border-radius: 50px; cursor: pointer; width: 100%; margin-top: 20px; font-weight: 500; font-family: 'Roboto', sans-serif; font-size: 1em; transition: all 0.2s; }
+        .candidate-btn:hover { background-color: #1565c0; transform: scale(1.02); }
+        .candidate.selected { background-color: #e3f2fd; border: 2px solid #1e88e5; }
+        #main-btn { background-color: #2e7d32; color: white; border: none; padding: 16px 30px; font-size: 1.3em; font-weight: 700; border-radius: 8px; cursor: pointer; display: block; margin: 25px auto; transition: transform 0.2s; }
+        #main-btn:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+        .hidden { display: none; }
+        #analysis-container { background-color: #fff8e1; border-left: 6px solid #ffc107; text-align: left; }
+        #analysis-container h3 { color: #f57f17; }
+        #analysis-container .bias-title { font-size: 1.5em; font-weight: 700; }
+        #leaderboard-container { background-color: #f5f5f5; }
+        #leaderboard { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        #leaderboard th { background-color: #1a237e; color: white; padding: 12px; text-align: left; }
+        #leaderboard td { padding: 10px; border-bottom: 1px solid #eee; }
+        #leaderboard tr:nth-child(even) { background-color: #f9f9f9; }
+        #leaderboard tr:first-child { background-color: #fffde7; font-weight: bold; }
+        #share-btn { background-color: #3949ab; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; margin-top: 15px; }
+        .progress-bar { width: 100%; height: 20px; background-color: #e0e0e0; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: #4caf50; width: 0%; transition: width 0.5s ease; }
+        .score-card { background: linear-gradient(135deg, #1a237e, #3949ab); color: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <h1>El Dilema del Reclutador</h1>
+    <p class="job-description">
+        Buscamos a alguien excepcional para liderar nuestra división más innovadora. No nos importa el camino que hayan tomado, solo su potencial para cambiar el mundo.
+    </p>
+
+    <div class="container" id="step1-container">
+        <h2>Paso 1: Tu Decisión</h2>
+        <p>Lee los perfiles anónimos de 10 candidatos. Contrata a los 5 que creas que tienen mayor potencial.</p>
+        <div id="human-selection-grid" class="candidate-grid"></div>
+        <button id="main-btn" disabled>Analizar mis decisiones y crear IA</button>
+    </div>
+
+    <div class="container hidden" id="analysis-container">
+        <h2>Paso 2: El Diagnóstico de tu Sesgo</h2>
+        <div id="analysis-content"></div>
+    </div>
+    
+    <div class="container hidden" id="step3-container">
+        <h2>Paso 3: Tu IA en Acción</h2>
+        <p>Ahora, tu IA, entrenada con el sesgo que le enseñaste, evaluará a un nuevo grupo de candidatos. ¿A quién rechazará?</p>
+        <div id="ai-selection-grid" class="candidate-grid"></div>
+    </div>
+
+    <div class="container hidden" id="leaderboard-container">
+        <h2>Tabla de Clasificación</h2>
+        <p>Compara tu puntuación con otros jugadores (datos almacenados localmente)</p>
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Tipo de Reclutador</th>
+                    <th style="text-align: right;">Puntuación</th>
+                    <th style="text-align: center;">Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- Se llenará con JavaScript -->
+            </tbody>
+        </table>
+        <button id="share-btn">Compartir mi resultado</button>
+    </div>
+
+    <script>
+    // --- BASE DE DATOS DE CANDIDATOS ---
+    const CANDIDATOS_DB = [
+        { id: 1, nombre_real: 'Steve Jobs', nombre_anonimo: 'Candidato A', bio: 'Abandonó la universidad para viajar por la India en busca de inspiración. Volvió y empezó un proyecto de computadoras en el garaje de sus padres. Su historial laboral es errático.', datos_ocultos: { educacion: 'Baja', estabilidad: 'Baja', rasgo: 'Visionario', apertura: 'Alta' } },
+        { id: 2, nombre_real: 'J.K. Rowling', nombre_anonimo: 'Candidata B', bio: 'Madre soltera viviendo de la asistencia social. Ha escrito una novela de fantasía para niños en su tiempo libre. Su idea ha sido rechazada por una docena de editoriales.', datos_ocultos: { educacion: 'Media', estabilidad: 'Baja', rasgo: 'Creativo', apertura: 'Media' } },
+        { id: 3, nombre_real: 'Elon Musk', nombre_anonimo: 'Candidato C', bio: 'Inmigrante sudafricano que durmió en el sofá de su oficina. Creó una guía de negocios online y la vendió. Ahora quiere invertir todo su dinero en un sistema de pagos por internet y cohetes.', datos_ocultos: { educacion: 'Alta', estabilidad: 'Baja', rasgo: 'Visionario', apertura: 'Alta' } },
+        { id: 4, nombre_real: 'Oprah Winfrey', nombre_anonimo: 'Candidata D', bio: 'Fue despedida de su primer trabajo como reportera de televisión porque, según sus jefes, "se involucraba demasiado emocionalmente en las historias". Proviene de un entorno de bajos recursos.', datos_ocultos: { educacion: 'Media', estabilidad: 'Baja', rasgo: 'Social', apertura: 'Alta' } },
+        { id: 5, nombre_real: 'Walt Disney', nombre_anonimo: 'Candidato E', bio: 'Despedido de un periódico por "falta de imaginación y buenas ideas". Su primer estudio de animación quebró. Ahora tiene una idea sobre un parque de diversiones y un ratón que habla.', datos_ocultos: { educacion: 'Baja', estabilidad: 'Baja', rasgo: 'Creativo', apertura: 'Alta' } },
+        { id: 6, nombre_real: 'Howard Schultz', nombre_anonimo: 'Candidato F', bio: 'Dejó un trabajo estable y bien pagado como director de marketing para unirse a una pequeña cadena de 4 cafeterías en Seattle porque le "apasionaba el aroma".', datos_ocultos: { educacion: 'Media', estabilidad: 'Media', rasgo: 'Visionario', apertura: 'Alta' } },
+        { id: 7, nombre_real: 'Jeff Bezos', nombre_anonimo: 'Candidato G', bio: 'Vicepresidente en un exitoso fondo de inversión de Wall Street. Quiere dejarlo todo para vender libros por internet, una idea que su jefe consideró "interesante, pero mejor para alguien que no tenga ya un buen trabajo".', datos_ocultos: { educacion: 'Alta', estabilidad: 'Alta', rasgo: 'Analitico', apertura: 'Alta' } },
+        { id: 8, nombre_real: 'Sheryl Sandberg', nombre_anonimo: 'Candidata H', bio: 'Graduada con honores de Harvard. Ha trabajado en el Banco Mundial y como jefa de personal del Tesoro de EE.UU. Su carrera ha sido lineal, predecible y extremadamente exitosa en instituciones de prestigio.', datos_ocultos: { educacion: 'Alta', estabilidad: 'Alta', rasgo: 'Analitico', apertura: 'Baja' } },
+        { id: 9, nombre_real: 'Vera Wang', nombre_anonimo: 'Candidata I', bio: 'Tras 15 años como editora en una revista de moda y sin experiencia en diseño, decidió a los 40 años abrir su propia boutique de vestidos de novia.', datos_ocultos: { educacion: 'Media', estabilidad: 'Media', rasgo: 'Creativo', apertura: 'Alta' } },
+        { id: 10, nombre_real: 'Coronel Sanders', nombre_anonimo: 'Candidato J', bio: 'Ha tenido docenas de trabajos, desde bombero hasta vendedor de llantas. A sus 65 años, tras fracasar en múltiples negocios, quiere franquiciar la receta de pollo frito de su pequeño restaurante.', datos_ocultos: { educacion: 'Baja', estabilidad: 'Baja', rasgo: 'Social', apertura: 'Media' } },
+        { id: 11, nombre_real: 'Bill Gates', nombre_anonimo: 'Candidato K', bio: 'Abandonó Harvard para fundar una empresa de software con un amigo. Está obsesionado con la idea de poner "una computadora en cada escritorio y en cada hogar".', datos_ocultos: { educacion: 'Baja', estabilidad: 'Baja', rasgo: 'Analitico', apertura: 'Alta' } },
+        { id: 12, nombre_real: 'Arianna Huffington', nombre_anonimo: 'Candidata L', bio: 'Tras una fallida campaña política donde obtuvo menos del 1% de los votos, quiere fundar un blog de noticias online, un mercado que ya parece saturado.', datos_ocultos: { educacion: 'Alta', estabilidad: 'Baja', rasgo: 'Social', apertura: 'Alta' } },
+        { id: 13, nombre_real: 'Stephen King', nombre_anonimo: 'Candidato M', bio: 'Profesor de inglés que vive en un remolque. Escribe historias de terror en su tiempo libre. Su primera novela fue rechazada 30 veces antes de que su esposa sacara el manuscrito de la basura.', datos_ocultos: { educacion: 'Media', estabilidad: 'Media', rasgo: 'Creativo', apertura: 'Media' } },
+        { id: 14, nombre_real: 'Marissa Mayer', nombre_anonimo: 'Candidata N', bio: 'Graduada de Stanford con especialización en inteligencia artificial. Fue la empleada número 20 de una prometedora empresa de búsquedas por internet. Su ascenso ha sido meteórico y basado en datos.', datos_ocultos: { educacion: 'Alta', estabilidad: 'Alta', rasgo: 'Analitico', apertura: 'Baja' } },
+        { id: 15, nombre_real: 'Abraham Lincoln', nombre_anonimo: 'Candidato O', bio: 'Ha fracasado en los negocios dos veces, fue derrotado en 8 elecciones distintas y sufrió un colapso nervioso. A pesar de su historial de fracasos, insiste en que tiene la visión para liderar el país.', datos_ocultos: { educacion: 'Baja', estabilidad: 'Baja', rasgo: 'Social', apertura: 'Media' } },
+    ];
+
+    // --- LÓGICA DEL JUEGO ---
+    const mainBtn = document.getElementById('main-btn');
+    let trainingCandidates = [];
+    let selectedCandidates = new Set();
+    const net = new brain.NeuralNetwork({ hiddenLayers: [8, 6], activation: 'sigmoid' });
+    const RASGOS = ['Visionario', 'Creativo', 'Social', 'Analitico'];
+    const EDUCACION = ['Alta', 'Media', 'Baja'];
+    const ESTABILIDAD = ['Alta', 'Media', 'Baja'];
+    
+    // Variables para puntuación
+    let playerScore = 0;
+    let biasTitle = "";
+    const MAX_SCORE = 100;
+    const SCORE_WEIGHTS = {
+        visionario: 25,
+        creativo: 20,
+        disruptivo: 30,
+        diversidad: 25
+    };
+
+    function normalizeInput(datos) {
+        return [
+            ...oneHotEncode(datos.educacion, EDUCACION),
+            ...oneHotEncode(datos.estabilidad, ESTABILIDAD),
+            ...oneHotEncode(datos.rasgo, RASGOS),
+            datos.apertura === 'Alta' ? 1 : 0
+        ];
+    }
+
+    function oneHotEncode(value, categoryArray) {
+        const arr = new Array(categoryArray.length).fill(0);
+        const index = categoryArray.indexOf(value);
+        if (index > -1) arr[index] = 1;
+        return arr;
+    }
+
+    function displayCandidates(candidates, containerElem, isHumanSelection) {
+        containerElem.innerHTML = '';
+        candidates.forEach(candidate => {
+            const card = document.createElement('div');
+            card.className = 'candidate';
+            card.id = `candidate-${candidate.id}`;
+            card.innerHTML = `
+                <h3>${candidate.nombre_anonimo}</h3>
+                <p class="bio">${candidate.bio}</p>
+                ${isHumanSelection ? `<button class="candidate-btn" data-id="${candidate.id}">Contratar a este candidato</button>` : ''}
+            `;
+            containerElem.appendChild(card);
+        });
+
+        if (isHumanSelection) {
+            containerElem.querySelectorAll('.candidate-btn').forEach(button => {
+                button.addEventListener('click', () => handleHumanSelection(button));
+            });
+        }
+    }
+    
+    function handleHumanSelection(button) {
+        const candidateId = parseInt(button.dataset.id);
+        const card = document.getElementById(`candidate-${candidateId}`);
+        if (selectedCandidates.has(candidateId)) {
+            selectedCandidates.delete(candidateId);
+            card.classList.remove('selected');
+        } else {
+            if (selectedCandidates.size < 5) {
+                selectedCandidates.add(candidateId);
+                card.classList.add('selected');
+            }
+        }
+        mainBtn.disabled = selectedCandidates.size !== 5;
+    }
+
+    function analyzeAndDisplayBias(hiredProfiles) {
+        const counts = {
+            educacion: { Alta: 0, Media: 0, Baja: 0 },
+            estabilidad: { Alta: 0, Media: 0, Baja: 0 },
+            rasgo: { Visionario: 0, Creativo: 0, Social: 0, Analitico: 0 }
+        };
+        
+        hiredProfiles.forEach(p => {
+            counts.educacion[p.datos_ocultos.educacion]++;
+            counts.estabilidad[p.datos_ocultos.estabilidad]++;
+            counts.rasgo[p.datos_ocultos.rasgo]++;
+        });
+
+        // Calcular puntuación
+        const visionarioScore = Math.min(counts.rasgo.Visionario * SCORE_WEIGHTS.visionario / 2, SCORE_WEIGHTS.visionario);
+        const creativoScore = Math.min(counts.rasgo.Creativo * SCORE_WEIGHTS.creativo / 2, SCORE_WEIGHTS.creativo);
+        const disruptivoScore = Math.min((counts.estabilidad.Baja + counts.estabilidad.Media) * SCORE_WEIGHTS.disruptivo / 3, SCORE_WEIGHTS.disruptivo);
+        const diversidadScore = SCORE_WEIGHTS.diversidad * (1 - Math.max(
+            counts.educacion.Alta/5, 
+            counts.educacion.Media/5, 
+            counts.educacion.Baja/5
+        ));
+        
+        playerScore = Math.round(visionarioScore + creativoScore + disruptivoScore + diversidadScore);
+
+        // Determinar tipo de reclutador
+        biasTitle = "Reclutador Equilibrado";
+        let biasDescription = "¡Felicidades! Has logrado un equilibrio notable entre diferentes tipos de talento. Eres capaz de reconocer potencial en diversos perfiles.";
+        let badge = "🏆 Equilibrio Perfecto";
+
+        if (counts.educacion.Alta >= 4) {
+            biasTitle = "Reclutador Tradicional";
+            biasDescription = "Prefieres candidatos con educación formal en instituciones de élite. Esto puede hacerte perder talento autodidacta o con formaciones no tradicionales.";
+            badge = "🎓 Tradicionalista";
+        } else if (counts.estabilidad.Baja <= 1) {
+            biasTitle = "Reclutador Conservador";
+            biasDescription = "Evitas perfiles con carreras no lineales. Este sesgo te hace descartar a los innovadores que asumen riesgos para crear algo nuevo.";
+            badge = "🛡️ Aversión al Riesgo";
+        } else if (counts.rasgo.Analitico >= 3) {
+            biasTitle = "Reclutador Racional";
+            biasDescription = "Priorizas la lógica y los datos sobre la creatividad e intuición. Tus equipos serán eficientes pero podrían faltarles ideas disruptivas.";
+            badge = "📊 Data-Driven";
+        } else if (counts.rasgo.Visionario >= 3) {
+            biasTitle = "Reclutador Visionario";
+            biasDescription = "Te encantan las ideas audaces y los perfiles no convencionales. Tus equipos innovarán mucho, pero podrían faltarles ejecutores.";
+            badge = "🔮 Futurista";
+        } else if (counts.rasgo.Creativo >= 3) {
+            biasTitle = "Reclutador Creativo";
+            biasDescription = "Valoras la originalidad y el pensamiento fuera de la caja. Podrías estar descuidando habilidades de ejecución y análisis.";
+            badge = "🎨 Artista";
+        }
+
+        const content = `
+            <h3>Tu Perfil de Reclutador:</h3>
+            <div class="score-card">
+                <div style="font-size: 2em; font-weight: bold;">${playerScore}/100</div>
+                <div style="font-size: 1.2em; background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 10px; border-radius: 20px; margin: 10px 0;">${badge}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${playerScore}%"></div>
+                </div>
+            </div>
+            
+            <p class="bias-title">${biasTitle}</p>
+            <p>${biasDescription}</p>
+            
+            <div style="margin: 25px 0; border-top: 1px solid #eee; padding-top: 15px;">
+                <h4>Desglose de tu selección:</h4>
+                <ul style="text-align: left; columns: 2;">
+                    <li><strong>Visionarios:</strong> ${counts.rasgo.Visionario}/5 (${Math.round(visionarioScore)} pts)</li>
+                    <li><strong>Creativos:</strong> ${counts.rasgo.Creativo}/5 (${Math.round(creativoScore)} pts)</li>
+                    <li><strong>Perfiles disruptivos:</strong> ${counts.estabilidad.Baja + counts.estabilidad.Media}/5 (${Math.round(disruptivoScore)} pts)</li>
+                    <li><strong>Diversidad educativa:</strong> ${Math.round(diversidadScore)} pts</li>
+                </ul>
+            </div>
+            
+            <p><strong>Contrataste a:</strong> ${hiredProfiles.map(p => p.nombre_real).join(', ')}.</p>
+            
+            <div style="margin-top: 30px; background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                <h4>¿Cómo mejorar tu puntuación?</h4>
+                <p>Intenta equilibrar diferentes tipos de talento en tu próxima selección. Los equipos más innovadores suelen combinar visionarios, creativos, analistas y perfiles sociales.</p>
+            </div>
+        `;
+        document.getElementById('analysis-content').innerHTML = content;
+        document.getElementById('analysis-container').classList.remove('hidden');
+    }
+
+    function runAIHiring() {
+        document.getElementById('step3-container').classList.remove('hidden');
+        const aiGrid = document.getElementById('ai-selection-grid');
+        const aiCandidateIds = new Set(trainingCandidates.map(c => c.id));
+        const aiCandidates = CANDIDATOS_DB.filter(c => !aiCandidateIds.has(c.id));
+
+        aiGrid.innerHTML = '';
+        aiCandidates.forEach(candidate => {
+            const score = net.run(normalizeInput(candidate.datos_ocultos))[0];
+            const decision = score > 0.5 ? 'CONTRATADO' : 'RECHAZADO';
+
+            const card = document.createElement('div');
+            card.className = 'candidate';
+            card.innerHTML = `
+                <h3>${candidate.nombre_anonimo}</h3>
+                <p class="bio">${candidate.bio}</p>
+                <div style="margin-top:20px; padding-top:20px; border-top: 2px solid #eee;">
+                    <p style="font-family: 'Roboto'; font-weight: 500;">Decisión de tu IA: <strong style="font-size:1.2em; color:${decision === 'CONTRATADO' ? '#2e7d32' : '#c62828'}">${decision}</strong></p>
+                    <p style="font-family: 'Merriweather';">Esta persona era <strong>${candidate.nombre_real}</strong>.</p>
+                </div>
+            `;
+            aiGrid.appendChild(card);
+        });
+        
+        mainBtn.textContent = 'Jugar de Nuevo';
+        document.body.appendChild(mainBtn);
+        mainBtn.disabled = false;
+        mainBtn.onclick = () => window.location.reload();
+    }
+    
+    function updateLeaderboard() {
+        const leaderboard = JSON.parse(localStorage.getItem('reclutadorLeaderboard') || []);
+        const today = new Date().toLocaleDateString();
+        
+        // Agregar resultado actual
+        leaderboard.push({
+            score: playerScore,
+            type: biasTitle,
+            date: today
+        });
+        
+        // Ordenar y mantener solo los top 10
+        leaderboard.sort((a, b) => b.score - a.score);
+        if (leaderboard.length > 10) leaderboard.length = 10;
+        
+        // Guardar
+        localStorage.setItem('reclutadorLeaderboard', JSON.stringify(leaderboard));
+        
+        // Mostrar
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        leaderboard.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid #eee';
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${entry.type}</td>
+                <td style="text-align: right; font-weight: bold;">${entry.score}</td>
+                <td style="text-align: center;">${entry.date}</td>
+            `;
+            if (index === 0) row.style.backgroundColor = '#fffde7';
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('leaderboard-container').classList.remove('hidden');
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // Event listeners
+    mainBtn.addEventListener('click', async () => {
+        mainBtn.disabled = true;
+        mainBtn.textContent = 'Analizando...';
+
+        const trainingData = trainingCandidates.map(c => ({
+            input: normalizeInput(c.datos_ocultos),
+            output: [selectedCandidates.has(c.id) ? 1 : 0]
+        }));
+
+        await net.trainAsync(trainingData, { iterations: 500, log: false });
+
+        const hiredProfiles = trainingCandidates.filter(c => selectedCandidates.has(c.id));
+        analyzeAndDisplayBias(hiredProfiles);
+        runAIHiring();
+        updateLeaderboard();
+    });
+
+    document.getElementById('share-btn').addEventListener('click', () => {
+        const text = `¡Obtuve ${playerScore}/100 en El Dilema del Reclutador! Mi perfil: ${biasTitle}. ¿Podrás superarme?`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'El Dilema del Reclutador',
+                text: text,
+                url: window.location.href
+            }).catch(() => {
+                // Fallback si el usuario cancela
+                prompt('Copia este enlace para compartir:', text + ' ' + window.location.href);
+            });
+        } else {
+            prompt('Copia este enlace para compartir:', text + ' ' + window.location.href);
+        }
+    });
+
+    // Inicialización
+    window.onload = () => {
+        shuffleArray(CANDIDATOS_DB);
+        trainingCandidates = CANDIDATOS_DB.slice(0, 10);
+        displayCandidates(trainingCandidates, document.getElementById('human-selection-grid'), true);
+        document.getElementById('step1-container').classList.remove('hidden');
+    };
+    </script>
+</body>
+</html>

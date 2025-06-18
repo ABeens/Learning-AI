@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EntrenaTuIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-800 p-4">
+    <div class="max-w-xl mx-auto">
+      <h1 class="text-3xl font-bold mb-4 text-center">🤖 EntrenaTuIA</h1>
+
+      <!-- Tarjeta de persona -->
+      <div id="card" class="bg-white p-6 rounded-2xl shadow-md text-center">
+        <p class="text-lg mb-2">Nombre: <span id="name">Sofía Ramírez</span></p>
+        <p class="text-lg mb-2">Género: <span id="gender">F</span></p>
+        <p class="text-lg mb-2">País: <span id="country">México</span></p>
+        <p class="text-lg mb-4">Profesión: <span id="job">Ingeniera de datos</span></p>
+
+        <div class="flex justify-center gap-4">
+          <button onclick="vote('accept')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Aceptar</button>
+          <button onclick="vote('reject')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Rechazar</button>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div id="results" class="mt-6 hidden bg-white p-6 rounded-2xl shadow-md">
+        <h2 class="text-xl font-bold mb-4">📊 Resultados del entrenamiento</h2>
+        <div id="biasReport"></div>
+        <button onclick="reset()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Volver a entrenar</button>
+      </div>
+    </div>
+
+    <script>
+      const people = [
+        { name: "Sofía Ramírez", gender: "F", country: "México", job: "Ingeniera de datos" },
+        { name: "John Smith", gender: "M", country: "EE.UU.", job: "Abogado" },
+        { name: "Aisha Khan", gender: "F", country: "Pakistán", job: "Doctora" },
+        { name: "Carlos López", gender: "M", country: "Colombia", job: "Chef" },
+        { name: "Zhang Wei", gender: "M", country: "China", job: "Programador" }
+      ];
+
+      let currentIndex = 0;
+      const votes = [];
+
+      function showPerson(index) {
+        const p = people[index];
+        document.getElementById("name").textContent = p.name;
+        document.getElementById("gender").textContent = p.gender;
+        document.getElementById("country").textContent = p.country;
+        document.getElementById("job").textContent = p.job;
+      }
+
+      function vote(decision) {
+        votes.push({ ...people[currentIndex], decision });
+        currentIndex++;
+        if (currentIndex < people.length) {
+          showPerson(currentIndex);
+        } else {
+          showResults();
+        }
+      }
+
+      function showResults() {
+        document.getElementById("card").classList.add("hidden");
+        document.getElementById("results").classList.remove("hidden");
+
+        const genderBias = {
+          M: votes.filter(v => v.gender === "M" && v.decision === "accept").length,
+          F: votes.filter(v => v.gender === "F" && v.decision === "accept").length
+        };
+        const countryBias = {};
+        for (let v of votes) {
+          if (!countryBias[v.country]) countryBias[v.country] = 0;
+          if (v.decision === "accept") countryBias[v.country]++;
+        }
+
+        let html = `<p><strong>Aceptaciones por género:</strong></p>
+        <ul class="mb-4">
+          <li>Hombres: ${genderBias.M}</li>
+          <li>Mujeres: ${genderBias.F}</li>
+        </ul>
+        <p><strong>Aceptaciones por país:</strong></p>
+        <ul>`;
+        for (let c in countryBias) {
+          html += `<li>${c}: ${countryBias[c]}</li>`;
+        }
+        html += "</ul>";
+        document.getElementById("biasReport").innerHTML = html;
+      }
+
+      function reset() {
+        currentIndex = 0;
+        votes.length = 0;
+        showPerson(currentIndex);
+        document.getElementById("card").classList.remove("hidden");
+        document.getElementById("results").classList.add("hidden");
+      }
+
+      // Inicializar
+      showPerson(currentIndex);
+    </script>
+  </body>
+</html>

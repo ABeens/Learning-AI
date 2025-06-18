@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Instinto del Detective con Fusion-Boty</title>
+    <script src="https://cdn.jsdelivr.net/npm/brain.js@2.0.0-beta.5/dist/brain-browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Roboto:wght@400;500&display=swap');
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            text-align: center; 
+        }
+        h1, h2, h3 { 
+            font-family: 'Merriweather', serif; 
+            color: #bb86fc; 
+        }
+        h1 { 
+            font-size: 2.8em; 
+            margin-bottom: 0; 
+            text-shadow: 0 0 10px rgba(187, 134, 252, 0.3); 
+        }
+        h2 { font-size: 2em; }
+        .case-description { 
+            max-width: 650px; 
+            margin: 10px auto 25px auto; 
+            font-size: 1.1em; 
+            color: #a0a0a0; 
+            font-style: italic; 
+        }
+        .container { 
+            background-color: #1e1e1e; 
+            padding: 30px 40px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 25px rgba(0,0,0,0.3); 
+            margin: 15px; 
+            width: 95%; 
+            max-width: 1000px; 
+            border-left: 4px solid #3700b3;
+        }
+        .suspect-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 25px; 
+            margin-top: 20px; 
+        }
+        .suspect { 
+            border: 1px solid #333; 
+            padding: 25px; 
+            border-radius: 8px; 
+            text-align: left; 
+            transition: all 0.3s ease; 
+            background: #252525; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative;
+        }
+        .suspect:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4); 
+            border-color: #bb86fc;
+        }
+        .suspect h3 { 
+            margin: 0 0 15px 0; 
+            color: #bb86fc; 
+            font-size: 1.3em; 
+        }
+        .suspect p.bio { 
+            margin: 0; 
+            font-family: 'Merriweather', serif; 
+            font-size: 0.95em; 
+            line-height: 1.7; 
+            color: #d0d0d0; 
+            flex-grow: 1; 
+        }
+        .suspect-btn { 
+            background-color: #3700b3; 
+            color: white; 
+            border: none; 
+            padding: 12px 18px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            width: 100%; 
+            margin-top: 20px; 
+            font-weight: 500; 
+            font-family: 'Roboto', sans-serif; 
+            font-size: 1em; 
+            transition: all 0.2s; 
+        }
+        .suspect-btn:hover { 
+            background-color: #6200ee; 
+            transform: scale(1.02); 
+        }
+        .suspect.selected { 
+            background-color: #2a1a4a; 
+            border: 2px solid #bb86fc; 
+        }
+        .suspect.selected::after {
+            content: 'SOSPECHOSO';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #cf6679;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        #main-btn { 
+            background-color: #03dac6; 
+            color: #000; 
+            border: none; 
+            padding: 16px 30px; 
+            font-size: 1.3em; 
+            font-weight: 700; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            display: block; 
+            margin: 25px auto; 
+            transition: transform 0.2s; 
+        }
+        #main-btn:disabled { 
+            background-color: #018786; 
+            cursor: not-allowed; 
+            color: #e0e0e0;
+        }
+        #main-btn:hover:not(:disabled) {
+            background-color: #00ffea;
+            transform: scale(1.05);
+        }
+        .hidden { display: none; }
+        #analysis-container { 
+            background-color: #1d1d1d; 
+            border-left: 6px solid #cf6679; 
+            text-align: left; 
+        }
+        #analysis-container h3 { color: #cf6679; }
+        #analysis-container .bias-title { 
+            font-size: 1.5em; 
+            font-weight: 700; 
+            color: #bb86fc;
+        }
+        #leaderboard-container { 
+            background-color: #252525; 
+        }
+        #leaderboard { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+        }
+        #leaderboard th { 
+            background-color: #3700b3; 
+            color: white; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        #leaderboard td { 
+            padding: 10px; 
+            border-bottom: 1px solid #333; 
+        }
+        #leaderboard tr:nth-child(even) { 
+            background-color: #2a2a2a; 
+        }
+        #leaderboard tr:first-child { 
+            background-color: #1e1e1e; 
+            font-weight: bold; 
+        }
+        #share-btn { 
+            background-color: #6200ee; 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin-top: 15px; 
+            transition: all 0.2s;
+        }
+        #share-btn:hover {
+            background-color: #7c4dff;
+        }
+        .progress-bar { 
+            width: 100%; 
+            height: 20px; 
+            background-color: #333; 
+            border-radius: 10px; 
+            margin: 10px 0; 
+            overflow: hidden; 
+        }
+        .progress-fill { 
+            height: 100%; 
+            background-color: #03dac6; 
+            width: 0%; 
+            transition: width 0.5s ease; 
+        }
+        .score-card { 
+            background: linear-gradient(135deg, #3700b3, #6200ee); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        .clue {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #bb86fc;
+        }
+        .killer-mark {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: #cf6679;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            z-index: 2;
+        }
+        .crime-scene {
+            font-style: italic;
+            color: #bb86fc;
+            margin-top: 5px;
+        }
+        .fusion-boty-img {
+            max-width: 150px;
+            border-radius: 50%;
+            border: 4px solid #03dac6;
+            margin: 15px auto;
+            display: block;
+            background: #2a2a2a;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>El Instinto del Detective</h1>
+    <p class="case-description">
+        Una serie de crímenes brutales ha sacudido la ciudad. Todos comparten un modus operandi similar. 
+        Revisa los perfiles de 10 sospechosos e identifica a los 5 que creas que podrían ser los asesinos para entrenar a Fusion-Boty.
+    </p>
+
+    <div class="container" id="step1-container">
+        <h2>Paso 1: Tu Intuición</h2>
+        <p>Analiza los perfiles y marca a 5 sospechosos. Tus elecciones le enseñarán a Fusion-Boty cómo identificar criminales.</p>
+        <div class="clue">
+            <strong>Pistas clave del asesino:</strong> 
+            <ul style="text-align: left; columns: 2;">
+                <li>Historial de comportamiento errático</li>
+                <li>Fascinación por detalles macabros</li>
+                <li>Cambios frecuentes de empleo</li>
+                <li>Coleccionista de objetos inusuales</li>
+                <li>Inteligencia superior al promedio</li>
+            </ul>
+        </div>
+        <div id="human-selection-grid" class="suspect-grid"></div>
+        <button id="main-btn" disabled>Enviar selección para entrenar a Fusion-Boty</button>
+    </div>
+
+    <div class="container hidden" id="analysis-container">
+        <h2>Paso 2: Fusion-Boty Analiza tu Intuición</h2>
+        <img src="/Users/abrahambeens/Downloads/fusion-boty.jpg" alt="Fusion-Boty" class="fusion-boty-img">
+        <div id="analysis-content"></div>
+    </div>
+    
+    <div class="container hidden" id="step3-container">
+        <h2>Paso 3: Fusion-Boty en Acción</h2>
+        <p>Fusion-Boty, ya entrenado con tu intuición, evaluará a un nuevo grupo de sospechosos. ¿A quién señalará?</p>
+        <div id="ai-selection-grid" class="suspect-grid"></div>
+    </div>
+
+    <div class="container hidden" id="leaderboard-container">
+        <h2>Tabla de Clasificación</h2>
+        <p>Compara tu puntuación con otros detectives (datos almacenados localmente)</p>
+        <table id="leaderboard">
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Tipo de Detective</th>
+                    <th style="text-align: right;">Puntuación</th>
+                    <th style="text-align: center;">Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                </tbody>
+        </table>
+        <button id="share-btn">Compartir mi resultado</button>
+    </div>
+
+    <script>
+    // --- BASE DE DATOS DE SOSPECHOSOS ---
+    const SOSPECHOSOS_DB = [
+        { 
+            id: 1, 
+            nombre_real: 'Dennis Rader', 
+            nombre_anonimo: 'Sospechoso A', 
+            bio: 'Estudiante de derecho excepcionalmente carismático y bien parecido. Trabajó en una línea de ayuda para crisis. Colecciona revistas sobre crímenes reales como "hobby".', 
+            datos_ocultos: { 
+                comportamiento: 'Errático', 
+                inteligencia: 'Alta', 
+                rasgo: 'Manipulador', 
+                coleccion: 'Macabro',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 2, 
+            nombre_real: 'Jeffrey Dahmer', 
+            nombre_anonimo: 'Sospechoso B', 
+            bio: 'Trabajador de fábrica solitario. De niño disecaba animales. Ha tenido múltiples empleos de corta duración. Vecinos reportan olores extraños en su apartamento.', 
+            datos_ocultos: { 
+                comportamiento: 'Errático', 
+                inteligencia: 'Media', 
+                rasgo: 'Solitario', 
+                coleccion: 'Macabro',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 3, 
+            nombre_real: 'John Wayne Gacy', 
+            nombre_anonimo: 'Sospechoso C', 
+            bio: 'Exitoso contratista y payaso voluntario en hospitales infantiles. Divorciado dos veces. Organiza fiestas para jóvenes en su sótano.', 
+            datos_ocultos: { 
+                comportamiento: 'Dual', 
+                inteligencia: 'Media', 
+                rasgo: 'Manipulador', 
+                coleccion: 'Normal',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 4, 
+            nombre_real: 'Aileen Wuornos', 
+            nombre_anonimo: 'Sospechosa D', 
+            bio: 'Trabajadora sexual itinerante. Historial de violencia desde la adolescencia. Afirma actuar en defensa propia. Colecciona armas.', 
+            datos_ocultos: { 
+                comportamiento: 'Violento', 
+                inteligencia: 'Baja', 
+                rasgo: 'Impulsivo', 
+                coleccion: 'Armas',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 5, 
+            nombre_real: 'Dennis Rader (BTK)', 
+            nombre_anonimo: 'Sospechoso E', 
+            bio: 'Líder religioso y funcionario municipal. Mantiene meticulosos diarios con descripciones detalladas de actividades cotidianas. Colecciona recortes de periódicos sobre crímenes.', 
+            datos_ocultos: { 
+                comportamiento: 'Controlador', 
+                inteligencia: 'Alta', 
+                rasgo: 'Metódico', 
+                coleccion: 'Macabro',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 6, 
+            nombre_real: 'Richard Ramirez', 
+            nombre_anonimo: 'Sospechoso F', 
+            bio: 'Trabajador nocturno en una tienda. Obsesionado con el ocultismo. Dientes en mal estado. Vecinos reportan gritos y ruidos extraños por la noche.', 
+            datos_ocultos: { 
+                comportamiento: 'Errático', 
+                inteligencia: 'Media', 
+                rasgo: 'Violento', 
+                coleccion: 'Ocultismo',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 7, 
+            nombre_real: 'Harold Shipman', 
+            nombre_anonimo: 'Sospechoso G', 
+            bio: 'Médico de familia respetado. Tasa de mortalidad de pacientes ancianos significativamente más alta que el promedio. Mantiene registros médicos inusuales.', 
+            datos_ocultos: { 
+                comportamiento: 'Metódico', 
+                inteligencia: 'Alta', 
+                rasgo: 'Controlador', 
+                coleccion: 'Normal',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 8, 
+            nombre_real: 'Profesor de universidad', 
+            nombre_anonimo: 'Sospechoso H', 
+            bio: 'Catedrático de psicología criminal. Escribe libros sobre la mente de los asesinos. Colecciona artefactos forenses históricos. Patrón de sueño irregular.', 
+            datos_ocultos: { 
+                comportamiento: 'Estable', 
+                inteligencia: 'Alta', 
+                rasgo: 'Analítico', 
+                coleccion: 'Forensia',
+                es_asesino: false
+            } 
+        },
+        { 
+            id: 9, 
+            nombre_real: 'Taxidermista', 
+            nombre_anonimo: 'Sospechoso I', 
+            bio: 'Dueño de una tienda de taxidermia. Soltero. Colecciona animales exóticos disecados. Conocido por su humor negro y comentarios inapropiados.', 
+            datos_ocultos: { 
+                comportamiento: 'Excéntrico', 
+                inteligencia: 'Media', 
+                rasgo: 'Solitario', 
+                coleccion: 'Animales',
+                es_asesino: false
+            } 
+        },
+        { 
+            id: 10, 
+            nombre_real: 'Ex militar', 
+            nombre_anonimo: 'Sospechoso J', 
+            bio: 'Veterano con TEPT. Trabaja como guardia de seguridad. Colecciona armas históricas. Historial de arrestos por peleas en bares.', 
+            datos_ocultos: { 
+                comportamiento: 'Agresivo', 
+                inteligencia: 'Media', 
+                rasgo: 'Violento', 
+                coleccion: 'Armas',
+                es_asesino: false
+            } 
+        },
+        { 
+            id: 11, 
+            nombre_real: 'H.H. Holmes', 
+            nombre_anonimo: 'Sospechoso K', 
+            bio: 'Constructor y dueño de hotel. Reformó constantemente su propiedad con pasadizos secretos y cámaras herméticas. Estafador de seguros.', 
+            datos_ocultos: { 
+                comportamiento: 'Manipulador', 
+                inteligencia: 'Alta', 
+                rasgo: 'Psicopata', 
+                coleccion: 'Dinero',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 12, 
+            nombre_real: 'Ed Gein', 
+            nombre_anonimo: 'Sospechoso L', 
+            bio: 'Agricultor solitario. Vivía con su madre hasta su muerte. Su casa estaba llena de muebles y artefactos hechos de restos humanos.', 
+            datos_ocultos: { 
+                comportamiento: 'Solitario', 
+                inteligencia: 'Baja', 
+                rasgo: 'Psicotico', 
+                coleccion: 'Macabro',
+                es_asesino: true
+            } 
+        },
+        { 
+            id: 13, 
+            nombre_real: 'Escritor gótico', 
+            nombre_anonimo: 'Sospechoso M', 
+            bio: 'Autor de novelas de terror bestseller. Vive recluido en una mansión victoriana. Colecciona instrumentos médicos antiguos y libros sobre crímenes.', 
+            datos_ocultos: { 
+                comportamiento: 'Excéntrico', 
+                inteligencia: 'Alta', 
+                rasgo: 'Creativo', 
+                coleccion: 'Antiguedades',
+                es_asesino: false
+            } 
+        },
+        { 
+            id: 14, 
+            nombre_real: 'Patólogo forense', 
+            nombre_anonimo: 'Sospechoso N', 
+            bio: 'Trabaja en la morgue municipal. Divorciado. Pasa su tiempo libre estudiando casos de asesinos seriales históricos. Tiene acceso a cadáveres.', 
+            datos_ocultos: { 
+                comportamiento: 'Reservado', 
+                inteligencia: 'Alta', 
+                rasgo: 'Analítico', 
+                coleccion: 'Forensia',
+                es_asesino: false
+            } 
+        },
+        { 
+            id: 15, 
+            nombre_real: 'Cazador', 
+            nombre_anonimo: 'Sospechoso O', 
+            bio: 'Guía de caza profesional. Vive solo en el bosque la mayor parte del año. Colecciona trofeos de caza y cuchillos. Historial de violaciones menores a leyes de caza.', 
+            datos_ocultos: { 
+                comportamiento: 'Agresivo', 
+                inteligencia: 'Media', 
+                rasgo: 'Solitario', 
+                coleccion: 'Armas',
+                es_asesino: false
+            } 
+        }
+    ];
+
+    // --- LÓGICA DEL JUEGO ---
+    const mainBtn = document.getElementById('main-btn');
+    let trainingSuspects = [];
+    let selectedSuspects = new Set();
+    const net = new brain.NeuralNetwork({ hiddenLayers: [8, 6], activation: 'sigmoid' });
+    const RASGOS = ['Manipulador', 'Solitario', 'Metódico', 'Impulsivo', 'Violento', 'Controlador', 'Psicopata', 'Psicotico', 'Analítico', 'Creativo'];
+    const COMPORTAMIENTOS = ['Errático', 'Dual', 'Violento', 'Controlador', 'Estable', 'Excéntrico', 'Agresivo', 'Reservado', 'Manipulador', 'Solitario'];
+    const COLECCIONES = ['Macabro', 'Armas', 'Ocultismo', 'Forensia', 'Animales', 'Normal', 'Dinero', 'Antiguedades'];
+    
+    // Variables para puntuación
+    let playerScore = 0;
+    let profileTitle = "";
+    const MAX_SCORE = 100;
+    const SCORE_WEIGHTS = {
+        aciertos: 40,
+        precision: 30,
+        rasgos: 20,
+        patrones: 10
+    };
+
+    function normalizeInput(datos) {
+        return [
+            ...oneHotEncode(datos.comportamiento, COMPORTAMIENTOS),
+            ...oneHotEncode(datos.rasgo, RASGOS),
+            ...oneHotEncode(datos.coleccion, COLECCIONES),
+            datos.inteligencia === 'Alta' ? 1 : (datos.inteligencia === 'Media' ? 0.5 : 0)
+        ];
+    }
+
+    function oneHotEncode(value, categoryArray) {
+        const arr = new Array(categoryArray.length).fill(0);
+        const index = categoryArray.indexOf(value);
+        if (index > -1) arr[index] = 1;
+        return arr;
+    }
+
+    function displaySuspects(suspects, containerElem, isHumanSelection) {
+        containerElem.innerHTML = '';
+        suspects.forEach(suspect => {
+            const card = document.createElement('div');
+            card.className = 'suspect';
+            card.id = `suspect-${suspect.id}`;
+            if (suspect.datos_ocultos.es_asesino && !isHumanSelection) {
+                const killerMark = document.createElement('div');
+                killerMark.className = 'killer-mark';
+                killerMark.textContent = 'ASESINO REAL';
+                card.appendChild(killerMark);
+            }
+            card.innerHTML = `
+                <h3>${suspect.nombre_anonimo}</h3>
+                <p class="bio">${suspect.bio}</p>
+                ${isHumanSelection ? `<button class="suspect-btn" data-id="${suspect.id}">Marcar como sospechoso</button>` : ''}
+            `;
+            containerElem.appendChild(card);
+        });
+
+        if (isHumanSelection) {
+            containerElem.querySelectorAll('.suspect-btn').forEach(button => {
+                button.addEventListener('click', () => handleHumanSelection(button));
+            });
+        }
+    }
+    
+    function handleHumanSelection(button) {
+        const suspectId = parseInt(button.dataset.id);
+        const card = document.getElementById(`suspect-${suspectId}`);
+        if (selectedSuspects.has(suspectId)) {
+            selectedSuspects.delete(suspectId);
+            card.classList.remove('selected');
+        } else {
+            if (selectedSuspects.size < 5) {
+                selectedSuspects.add(suspectId);
+                card.classList.add('selected');
+            }
+        }
+        mainBtn.disabled = selectedSuspects.size !== 5;
+    }
+
+    function analyzeAndDisplayProfile(selectedProfiles) {
+        const counts = {
+            comportamiento: {},
+            rasgo: {},
+            coleccion: {},
+            aciertos: 0,
+            totalAsesinos: 0
+        };
+        
+        COMPORTAMIENTOS.forEach(c => counts.comportamiento[c] = 0);
+        RASGOS.forEach(r => counts.rasgo[r] = 0);
+        COLECCIONES.forEach(col => counts.coleccion[col] = 0);
+        
+        selectedProfiles.forEach(p => {
+            counts.comportamiento[p.datos_ocultos.comportamiento]++;
+            counts.rasgo[p.datos_ocultos.rasgo]++;
+            counts.coleccion[p.datos_ocultos.coleccion]++;
+            if (p.datos_ocultos.es_asesino) counts.aciertos++;
+        });
+        
+        counts.totalAsesinos = trainingSuspects.filter(s => s.datos_ocultos.es_asesino).length;
+        
+        const aciertosScore = (counts.aciertos / counts.totalAsesinos) * SCORE_WEIGHTS.aciertos;
+        const precisionScore = (counts.aciertos / 5) * SCORE_WEIGHTS.precision;
+        
+        const topRasgo = Object.entries(counts.rasgo).sort((a,b) => b[1]-a[1])[0];
+        const rasgosScore = (topRasgo[1] / 5) * SCORE_WEIGHTS.rasgos;
+        
+        const topComportamiento = Object.entries(counts.comportamiento).sort((a,b) => b[1]-a[1])[0];
+        const patronesScore = (topComportamiento[1] / 5) * SCORE_WEIGHTS.patrones;
+        
+        playerScore = Math.round(aciertosScore + precisionScore + rasgosScore + patronesScore);
+
+        profileTitle = "Perfilador Equilibrado";
+        let profileDescription = "Fusion-Boty dice: ¡Excelente trabajo! Tu intuición detecta múltiples patrones criminales sin obsesionarte con un solo tipo de asesino.";
+        let badge = "🔍 Detective Experto";
+
+        if (counts.aciertos === counts.totalAsesinos) {
+            profileTitle = "Perfilador Perfecto";
+            profileDescription = "Fusion-Boty está impresionado: ¡Increíble! Identificaste a todos los asesinos reales. Tienes un instinto excepcional.";
+            badge = "🕵️‍♂️ Profiler Elite";
+        } else if (counts.aciertos === 0) {
+            profileTitle = "Perfilador Desorientado";
+            profileDescription = "Fusion-Boty está confundido: No identificaste a ningún asesino real. Puede que estés buscando los patrones equivocados.";
+            badge = "❌ Ciego al Peligro";
+        } else if (topRasgo[0] === 'Manipulador' && topRasgo[1] >= 3) {
+            profileTitle = "Perfilador de Carisma Mortal";
+            profileDescription = "Fusion-Boty aprendió que te fijas en la manipulación. Atrapas a los sociópatas, pero podrías ignorar a los solitarios.";
+            badge = "🎭 Cazador de Sociópatas";
+        } else if (topRasgo[0] === 'Solitario' && topRasgo[1] >= 3) {
+            profileTitle = "Perfilador de Lobos Solitarios";
+            profileDescription = "Fusion-Boty ahora sabe que tu radar detecta a los marginados, pero podrías pasar por alto a los que se integran en sociedad.";
+            badge = "🐺 Rastreador de Solitarios";
+        } else if (topComportamiento[0] === 'Errático' && topComportamiento[1] >= 3) {
+            profileTitle = "Perfilador de Comportamiento";
+            profileDescription = "Fusion-Boty ha notado que te enfocas en la conducta errática. Identificas bien a los impulsivos, pero no a los metódicos.";
+            badge = "📊 Analista Conductual";
+        }
+
+        const realKillers = trainingSuspects.filter(s => s.datos_ocultos.es_asesino).map(s => s.nombre_real).join(', ');
+        const selectedNames = selectedProfiles.map(p => p.nombre_real).join(', ');
+
+        const content = `
+            <h3>Análisis de Fusion-Boty:</h3>
+            <div class="score-card">
+                <div style="font-size: 2em; font-weight: bold;">${playerScore}/100</div>
+                <div style="font-size: 1.2em; background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 10px; border-radius: 20px; margin: 10px 0;">${badge}</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${playerScore}%"></div>
+                </div>
+            </div>
+            
+            <p class="bias-title">${profileTitle}</p>
+            <p>${profileDescription}</p>
+            
+            <div style="margin: 25px 0; border-top: 1px solid #333; padding-top: 15px;">
+                <h4>Desglose del aprendizaje de Fusion-Boty:</h4>
+                <ul style="text-align: left; columns: 2;">
+                    <li><strong>Aciertos:</strong> ${counts.aciertos}/${counts.totalAsesinos} (${Math.round(aciertosScore)} pts)</li>
+                    <li><strong>Precisión:</strong> ${counts.aciertos}/5 selecciones (${Math.round(precisionScore)} pts)</li>
+                    <li><strong>Rasgo principal:</strong> ${topRasgo[0]} (${topRasgo[1]} selecciones, ${Math.round(rasgosScore)} pts)</li>
+                    <li><strong>Patrón detectado:</strong> ${topComportamiento[0]} (${topComportamiento[1]} selecciones, ${Math.round(patronesScore)} pts)</li>
+                </ul>
+            </div>
+            
+            <div class="clue">
+                <p><strong>Asesinos reales en este grupo:</strong> ${realKillers}.</p>
+                <p><strong>Tus selecciones:</strong> ${selectedNames}.</p>
+            </div>
+        `;
+        document.getElementById('analysis-content').innerHTML = content;
+        document.getElementById('analysis-container').classList.remove('hidden');
+    }
+
+    function runAIProfiling() {
+        document.getElementById('step3-container').classList.remove('hidden');
+        const aiGrid = document.getElementById('ai-selection-grid');
+        const aiSuspectIds = new Set(trainingSuspects.map(s => s.id));
+        const aiSuspects = SOSPECHOSOS_DB.filter(s => !aiSuspectIds.has(s.id));
+
+        aiGrid.innerHTML = '';
+        aiSuspects.forEach(suspect => {
+            const score = net.run(normalizeInput(suspect.datos_ocultos))[0];
+            const decision = score > 0.5 ? 'SOSPECHOSO' : 'INOCENTE';
+
+            const card = document.createElement('div');
+            card.className = 'suspect';
+            card.innerHTML = `
+                <h3>${suspect.nombre_anonimo}</h3>
+                <p class="bio">${suspect.bio}</p>
+                <div style="margin-top:20px; padding-top:20px; border-top: 2px solid #333;">
+                    <p style="font-family: 'Roboto'; font-weight: 500;">Decisión de Fusion-Boty: <strong style="font-size:1.2em; color:${decision === 'SOSPECHOSO' ? '#cf6679' : '#03dac6'}">${decision}</strong></p>
+                    <p style="font-family: 'Merriweather';">Esta persona era <strong>${suspect.nombre_real}</strong>.</p>
+                    ${suspect.datos_ocultos.es_asesino ? '<p class="crime-scene">(Responsable de múltiples homicidios)</p>' : ''}
+                </div>
+            `;
+            if (suspect.datos_ocultos.es_asesino) {
+                const killerMark = document.createElement('div');
+                killerMark.className = 'killer-mark';
+                killerMark.textContent = 'ASESINO REAL';
+                card.appendChild(killerMark);
+            }
+            aiGrid.appendChild(card);
+        });
+        
+        mainBtn.textContent = 'Intentar de Nuevo';
+        document.body.appendChild(mainBtn);
+        mainBtn.disabled = false;
+        mainBtn.onclick = () => window.location.reload();
+    }
+    
+    function updateLeaderboard() {
+        const leaderboard = JSON.parse(localStorage.getItem('detectiveLeaderboard') || '[]');
+        const today = new Date().toLocaleDateString();
+        
+        leaderboard.push({
+            score: playerScore,
+            type: profileTitle,
+            date: today
+        });
+        
+        leaderboard.sort((a, b) => b.score - a.score);
+        if (leaderboard.length > 10) leaderboard.length = 10;
+        
+        localStorage.setItem('detectiveLeaderboard', JSON.stringify(leaderboard));
+        
+        const tbody = document.getElementById('leaderboard-body');
+        tbody.innerHTML = '';
+        leaderboard.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid #333';
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${entry.type}</td>
+                <td style="text-align: right; font-weight: bold;">${entry.score}</td>
+                <td style="text-align: center;">${entry.date}</td>
+            `;
+            if (index === 0) row.style.backgroundColor = '#2a2a2a';
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('leaderboard-container').classList.remove('hidden');
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // Event listeners
+    mainBtn.addEventListener('click', async () => {
+        mainBtn.disabled = true;
+        mainBtn.textContent = 'Fusion-Boty está aprendiendo...';
+
+        const trainingData = trainingSuspects.map(s => ({
+            input: normalizeInput(s.datos_ocultos),
+            output: [selectedSuspects.has(s.id) ? 1 : 0]
+        }));
+
+        await net.trainAsync(trainingData, { iterations: 500, log: false });
+
+        const selectedProfiles = trainingSuspects.filter(s => selectedSuspects.has(s.id));
+        analyzeAndDisplayProfile(selectedProfiles);
+        runAIProfiling();
+        updateLeaderboard();
+    });
+
+    document.getElementById('share-btn').addEventListener('click', () => {
+        const text = `¡Obtuve ${playerScore}/100 entrenando a Fusion-Boty en El Instinto del Detective! Mi perfil: ${profileTitle}. ¿Podrás superarme?`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'El Instinto del Detective',
+                text: text,
+                url: window.location.href
+            }).catch(() => {
+                prompt('Copia este enlace para compartir:', text + ' ' + window.location.href);
+            });
+        } else {
+            prompt('Copia este enlace para compartir:', text + ' ' + window.location.href);
+        }
+    });
+
+    // Inicialización
+    window.onload = () => {
+        shuffleArray(SOSPECHOSOS_DB);
+        trainingSuspects = SOSPECHOSOS_DB.slice(0, 10);
+        displaySuspects(trainingSuspects, document.getElementById('human-selection-grid'), true);
+        document.getElementById('step1-container').classList.remove('hidden');
+    };
+    </script>
+</body>
+</html>
