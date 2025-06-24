@@ -663,7 +663,7 @@ function showFinalResults() {
       sendResultsToGoogleDocs();
 
       dataSent = true; // Set dataSent to true after sending results
-      saveProgress()
+      saveProgress() 
       
       // Clear local storage after showing final results
       //localStorage.removeItem('biasDetectorProgress');
