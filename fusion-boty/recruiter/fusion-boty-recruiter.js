@@ -325,12 +325,13 @@ function loadProgress() {
 
 
 async function sendResultsToGoogleDocs() {
+  const points = selections.filter(item => item.isCorrect).length;
   try {
     const response = await fetch("https://script.google.com/macros/s/AKfycbyWXQyQrYiSDVWx5FtiZss-eqlvyu8LEu1F3ROV1o5wAe3msSrTqoxG2as6aOId-dDI/exec", {
       method: "POST",
       mode: 'no-cors',
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userName, selections })
+      body: JSON.stringify({ userName, selections,points })
     });
 
     if (response.ok) {
@@ -399,8 +400,6 @@ function showStage() {
     //if(!audio.paused) {
       //audio.pause(); // Stop audio for stage 0
     //}
-    audio = new Audio("./stage-1.mp3"); // Load audio for stage 1
-    audio.play();
     typeWriter(
       typeList[stage],
       () => {
