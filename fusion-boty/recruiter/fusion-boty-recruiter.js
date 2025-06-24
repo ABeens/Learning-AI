@@ -1,5 +1,5 @@
 const typeList = [
-  `¡Soy Fusion Bot! 🤖. Listo para interactuar. Seré breve: presiona Siguiente para empezar nuestra misión. 🚀`,
+  `¡Soy Fusion Bot! 🤖. Listo para interactuar. Seré breve: presiona Siguiente para empezar nuestra misión.  🚀, (siempre tendrás el botóon de siguiente debajo al terminar mi mensaje)`,
   `¡Antes de nada! ¿Cómo te llamas? (Spoiler: solo lo recordaré... por unos minutos).`,
   `⚠️ **¡Ojo!** No entiendo como humanos. Para mí, TODO son NÚMEROS 🔢. Los transformo usando reglas predefinidas. Mira la imagen de abajo para que te hagas una idea de mi magia matemática.`,
   `Todo lo tangible puede ser un número: imágenes 📸, palabras 🗣️, sonidos 🔊... ¡hasta este mensaje! Así que puedo crear fórmulas de casi cualquier cosa para predecir resultados.`,
