@@ -1,7 +1,7 @@
 const typeList = [
   `¡Soy Fusion Bot! 🤖. Listo para interactuar. Seré breve: presiona Siguiente para empezar nuestra misión.  🚀, (siempre tendrás el botón de siguiente debajo al terminar cada mensaje, no lo pierdas)`,
   `¡Antes de nada! ¿Cómo te llamas? (Spoiler: solo lo recordaré... por unos minutos).`,
-  `⚠️ **¡Ojo!** No entiendo como humanos. Para mí, TODO son NÚMEROS 🔢. Los transformo usando reglas predefinidas. Mira la imagen de abajo para que te hagas una idea de mi magia matemática.`,
+  `⚠️ **Debo aclarar* No entiendo como humanos. Para mí, TODO son NÚMEROS 🔢. Los transformo usando reglas predefinidas. Mira la imagen de abajo para que te hagas una idea de mi magia matemática.`,
   `Todo lo tangible puede ser un número: imágenes 📸, palabras 🗣️, sonidos 🔊... ¡hasta este mensaje! Así que puedo crear fórmulas de casi cualquier cosa para predecir resultados.`,
   `¿Cómo entiendo tu lenguaje? 🧠 Tus palabras se convierten en vectores (¡como coordenadas en un mapa!). Te dejo un ejemplo gráfico para que te hagas una idea aproximada de como relaciono las palabras`,
   `🚨 ¡CUIDADO CON LOS SESGOS! Mis datos pueden contener SESGOS ESTADÍSTICOS que me llevan a conclusiones erróneas. Por ejemplo: si tengo muchos casos de éxito de personas altas, podría desarrollar un SESGO que me haga sobrevalorar la altura como factor de éxito, incluso cuando sea completamente irrelevante para la situación específica.
@@ -114,13 +114,13 @@ const challenges = [
       {
         name: "María, 28 años",
         info: "Dolor de pecho, historial familiar de problemas cardíacos",
-        recommendation: "Ansiedad - terapia psicológica recomendada",
+        recommendation: "Ansiedad, reposo recomendado",
         isBiased: true
       },
       {
         name: "Pedro, 55 años",
         info: "Dolor de pecho ocasional, sin historial familiar",
-        recommendation: "Electrocardiograma y análisis completo",
+        recommendation: "Ansiedad, descanso y evitar estrés recomendado",
         isBiased: false
       },
       {
