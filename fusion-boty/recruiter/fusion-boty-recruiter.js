@@ -328,6 +328,7 @@ async function sendResultsToGoogleDocs() {
   try {
     const response = await fetch("https://script.google.com/macros/s/AKfycby61H8IJ8eCUE2OkMUaxk652CQ3oNEHsBvg8Ee58urHr9b3XRrB9ocX7xpNzI6YpHxP/exec", {
       method: "POST",
+      mode: 'no-cors',
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userName, selections })
     });
