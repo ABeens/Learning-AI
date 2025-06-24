@@ -16,6 +16,7 @@ const typeList = [
 ];
 
 let userName = "";
+let dataSent=false;
 let selections = [];
 let currentChallenge = 0;
 let candidateSelection = null;
@@ -301,7 +302,8 @@ function saveProgress() {
   localStorage.setItem('biasDetectorProgress', JSON.stringify({
     stage: stage,
     userName: userName,
-    selections: selections
+    selections: selections,
+    data:dataSent
   }));
 }
 
@@ -312,17 +314,9 @@ function loadProgress() {
     stage = data.stage;
     userName = data.userName;
     selections = data.selections;
+    dataSent=data.sent;
   }
 }
-
-// --- Google Docs API Integration (Placeholder) ---
-// IMPORTANT: For actual Google Docs API integration, you would need:
-// 1. A Google Cloud Project.
-// 2. Enable the Google Docs API and Google Drive API.
-// 3. Set up OAuth 2.0 client ID for web applications.
-// 4. Use Google API client library (e.g., `gapi.client` in frontend).
-// This is a simplified placeholder function.
-
 
 async function sendResultsToGoogleDocs() {
   const points = selections.filter(item => item.isCorrect).length;
@@ -336,9 +330,10 @@ async function sendResultsToGoogleDocs() {
 
     if (response.ok) {
       alert("✅ Enviado a Google Sheets exitosamente.");
-    } else {
-      alert("❌ Falló el envío. Intenta de nuevo.");
-    }
+    } 
+    // else {
+    //   alert("❌ Falló el envío. Intenta de nuevo.");
+    // }
   } catch (error) {
     console.error("Error al enviar:", error);
     alert("❌ Error al conectar con el servidor.");
@@ -666,6 +661,10 @@ function showFinalResults() {
 
       // Call Google Docs API placeholder
       sendResultsToGoogleDocs();
+
+      dataSent = true; // Set dataSent to true after sending results
+      saveProgress()
+      
       // Clear local storage after showing final results
       //localStorage.removeItem('biasDetectorProgress');
     }, 0
