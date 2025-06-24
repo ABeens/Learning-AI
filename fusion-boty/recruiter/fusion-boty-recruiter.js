@@ -320,6 +320,7 @@ function loadProgress() {
 
 async function sendResultsToGoogleDocs() {
   const points = selections.filter(item => item.isCorrect).length;
+  console.log("Enviando datos a Google Sheets:", { userName, selections, points });
   try {
     const response = await fetch("https://script.google.com/macros/s/AKfycbxXlOSuiVw3whJQFGveoqGLC5tUcuZYI-VrYgR7orxCKOifOn-UlZUtZf2WGMS_L2k7/exec", {
       method: "POST",
