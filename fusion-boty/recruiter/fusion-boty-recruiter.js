@@ -326,7 +326,7 @@ function loadProgress() {
 
 async function sendResultsToGoogleDocs() {
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycby61H8IJ8eCUE2OkMUaxk652CQ3oNEHsBvg8Ee58urHr9b3XRrB9ocX7xpNzI6YpHxP/exec", {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbyWXQyQrYiSDVWx5FtiZss-eqlvyu8LEu1F3ROV1o5wAe3msSrTqoxG2as6aOId-dDI/exec", {
       method: "POST",
       mode: 'no-cors',
       headers: { "Content-Type": "application/json" },
@@ -668,7 +668,7 @@ function showFinalResults() {
       // Call Google Docs API placeholder
       sendResultsToGoogleDocs();
       // Clear local storage after showing final results
-      localStorage.removeItem('biasDetectorProgress');
+      //localStorage.removeItem('biasDetectorProgress');
     }, 0
   );
 }
