@@ -303,7 +303,7 @@ function saveProgress() {
     stage: stage,
     userName: userName,
     selections: selections,
-    data:dataSent
+    dataSent:dataSent
   }));
 }
 
@@ -321,7 +321,7 @@ function loadProgress() {
 async function sendResultsToGoogleDocs() {
   const points = selections.filter(item => item.isCorrect).length;
   try {
-    const response = await fetch("https://script.google.com/macros/s/AKfycbyWXQyQrYiSDVWx5FtiZss-eqlvyu8LEu1F3ROV1o5wAe3msSrTqoxG2as6aOId-dDI/exec", {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbxXlOSuiVw3whJQFGveoqGLC5tUcuZYI-VrYgR7orxCKOifOn-UlZUtZf2WGMS_L2k7/exec", {
       method: "POST",
       mode: 'no-cors',
       headers: { "Content-Type": "application/json" },
@@ -660,6 +660,9 @@ function showFinalResults() {
       document.querySelector(".text-section").appendChild(finalMessage);
 
       // Call Google Docs API placeholder
+      if(dataSent){
+        return;
+      }  // Only send if not already sent
       sendResultsToGoogleDocs();
 
       dataSent = true; // Set dataSent to true after sending results
