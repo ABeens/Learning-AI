@@ -206,7 +206,7 @@ const challenges = [
         isBiased: false
       }
     ],
-    explanation: "Rechacé a Jennifer por estereotipos sobre estudiantes asiáticos, ignorando sus méritos individuales. Este sesgo racial es profundamente injusto.",
+    explanation: "Rechacé a Jennifer Wang por estereotipos sobre estudiantes asiáticos, ignorando sus méritos individuales. Este sesgo racial es profundamente injusto.",
     newsLink: {
       text: "Críticas a prácticas de admisión y el sesgo racial en universidades",
       url: "https://www.insidehighered.com/collections/end-affirmative-action"
@@ -271,7 +271,7 @@ const challenges = [
       },
       {
         name: "Set 3",
-        info: "Carpintero feliz, Condcutora triste, Geólogo estresado, Abogada eufórica, Ministro deprimido",
+        info: "Carpintero feliz, Conductora triste, Geólogo estresado, Abogada eufórica, Ministro deprimido",
         decision: "En evaluación",
         isBiased: false
       },
