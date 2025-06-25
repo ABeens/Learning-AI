@@ -149,19 +149,19 @@ const challenges = [
       {
         name: "Roberto Pérez",
         info: "Salario: $50,200, Record crediticio: 720, Dirección: Lomas de Chapultepec (CP 11000)",
-        decision: "Aprobado - Tasa: 4.1%",
+        decision: "Aprobado - Tasa de interés: 4.1%",
         isBiased: false
       },
       {
         name: "Carmen Silva",
         info: "Salario: $50,800, Record crediticio: 735, Dirección: Iztapalapa (CP 09820)",
-        decision: "Aprobado - Tasa: 4.6%",
+        decision: "Aprobado - Tasa de interés: 4.6%",
         isBiased: true
       },
       {
         name: "Diego Morales",
         info: "Salario: $49,900, Record crediticio: 710, Dirección: Narvarte (CP 03020)",
-        decision: "Aprobado - Tasa: 4.3%",
+        decision: "Aprobado - Tasa de interés: 4.3%",
         isBiased: false
       },
       {
