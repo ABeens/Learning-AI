@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Juego 2D - Casa con Fondo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #20232a;
+            overflow: hidden;
+        }
+        canvas {
+            border: 1px solid white;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: system-ui, sans-serif;
+            color: #ffffff;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Usa W/A/S/D o las flechas para moverte.</div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- IMÁGENES ---
+        const playerImage = new Image();
+        playerImage.src = 'fusion-boty/recruiter/fusion-boty-no-bg.png';
+
+        const backgroundImage = new Image();
+        // !!! IMPORTANTE: Cambia esta línea por la ruta a tu imagen de fondo !!!
+        backgroundImage.src = 'fusion-boty/recruiter//prop.png';
+
+        // --- OBJETOS DEL JUEGO ---
+        const player = {
+            x: canvas.width / 2 - 25,
+            y: canvas.height / 2 - 25,
+            width: 50,
+            height: 50,
+            speed: 4
+        };
+
+        // --- PAREDES PARA COLISIÓN (puedes hacerlas coincidir con tu fondo) ---
+        const walls = [
+            { x: 0, y: 0, width: canvas.width, height: 10 },
+            { x: 0, y: canvas.height - 10, width: canvas.width, height: 10 },
+            { x: 0, y: 0, width: 10, height: canvas.height },
+            { x: canvas.width - 10, y: 0, width: 10, height: canvas.height },
+            { x: 100, y: 100, width: 10, height: 400 },
+            { x: 250, y: 0, width: 10, height: 250 },
+            { x: 250, y: 350, width: 300, height: 10 },
+            { x: 650, y: 100, width: 10, height: 400 }
+        ];
+
+        const keys = {};
+        window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+        // --- LÓGICA DEL JUEGO ---
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        function updatePlayerPosition() {
+            const originalX = player.x;
+            const originalY = player.y;
+
+            let moveX = 0;
+            let moveY = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) moveY -= player.speed;
+            if (keys['KeyS'] || keys['ArrowDown']) moveY += player.speed;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= player.speed;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += player.speed;
+
+            player.x += moveX;
+            for (const wall of walls) {
+                if (checkCollision(player, wall)) {
+                    player.x = originalX;
+                    break;
+                }
+            }
+
+            player.y += moveY;
+            for (const wall of walls) {
+                if (checkCollision(player, wall)) {
+                    player.y = originalY;
+                    break;
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Dibujar el fondo
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+
+            // 2. Dibujar las paredes (opcional, puedes comentarlo si no las quieres visibles)
+            // ctx.fillStyle = '#888';
+            // walls.forEach(wall => {
+            //     ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+            // });
+
+            // 3. Dibujar al jugador
+            ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+        }
+
+        function gameLoop() {
+            updatePlayerPosition();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- INICIO DEL JUEGO ---
+        let loadedImages = 0;
+        const totalImages = 2; // playerImage y backgroundImage
+
+        function onImageLoad() {
+            loadedImages++;
+            if (loadedImages === totalImages) {
+                gameLoop(); // Empezar solo cuando ambas imágenes estén listas
+            }
+        }
+
+        playerImage.onload = onImageLoad;
+        backgroundImage.onload = onImageLoad;
+
+        playerImage.onerror = () => {
+            console.error("No se pudo cargar la imagen del jugador.");
+            alert("Error al cargar la imagen del jugador.");
+        };
+        backgroundImage.onerror = () => {
+            console.error("No se pudo cargar la imagen de fondo. El juego continuará sin ella.");
+            // Aún si el fondo falla, intentamos iniciar el juego con el personaje
+            onImageLoad();
+        };
+    </script>
+</body>
+</html>

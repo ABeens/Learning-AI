@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fusion World - Canvas Adventure</title>
+  <link href="styles.css" rel="stylesheet" type="text/css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Fusion World</h1>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+  </div>
+
+  <div id="dialog-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="question-title">Minijuego</h2>
+      </div>
+      <p id="question"></p>
+      <input type="text" id="answer" placeholder="Escribe tu respuesta...">
+      <button id="submit-answer">Confirmar</button>
+      <p id="feedback"></p>
+    </div>
+  </div>
+
+  <script type="module" src="fusion-world.js"></script>
+  <script src="init.js"></script>
+</body>
+</html>
