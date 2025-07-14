@@ -28,7 +28,7 @@ class FusionWorld {
 
     // Game settings
     this.canvas.width = 1000;
-    this.canvas.height = 650;
+    this.canvas.height = 600;
 
     // Collision map properties
     this.collisionMap = collisionMapData.map(v => v === 0 ? 0 : 1); // Transformar a 0/1
@@ -138,7 +138,7 @@ class FusionWorld {
 
   createInteractiveObjects() {
     this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
-    this.interactiveObjects.push({ x: 600, y: 400, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
+    this.interactiveObjects.push({ x: 300, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
     this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
 

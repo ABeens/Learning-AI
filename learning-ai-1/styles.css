@@ -1,3 +1,7 @@
+*{
+  zoom: 0.96;
+}
+
 /* General Body Styles */
 body {
   display: flex;
