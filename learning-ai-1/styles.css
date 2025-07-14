@@ -36,7 +36,7 @@ body {
   position: relative;
   background: #333;
   color: #fff;
-  margin: 15% auto;
+  margin: 5% auto;
   padding: 0;
   padding-bottom: 20px;
   border: 2px solid #555;
@@ -46,6 +46,16 @@ body {
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8);
   text-align: center;
   overflow: hidden; /* Ensures header fits within rounded corners */
+}
+
+#minigame-content p:first-of-type,
+#snake-characteristics {
+    text-align: left;
+    padding: 0 20px;
+}
+
+#snake-characteristics ul {
+    padding-left: 20px;
 }
 
 .modal-header {
@@ -66,7 +76,7 @@ body {
     line-height: 1.6;
 }
 
-#answer {
+#answer, #snake-answer {
   width: calc(100% - 40px);
   padding: 12px;
   margin-bottom: 20px;
@@ -77,7 +87,7 @@ body {
   font-size: 1em;
 }
 
-#submit-answer, #start-game, #minigame-submit {
+#submit-answer, #start-game, #minigame-submit, .minigame-submit-button {
   background-color: #ff8f00; /* Orange button */
   color: #fff;
   border: none;
@@ -89,7 +99,7 @@ body {
   transition: background-color 0.3s;
 }
 
-#submit-answer:hover, #start-game:hover, #minigame-submit:hover {
+#submit-answer:hover, #start-game:hover, #minigame-submit:hover, .minigame-submit-button:hover {
   background-color: #ff6f00; /* Darker orange on hover */
 }
 
@@ -100,35 +110,71 @@ body {
 }
 
 /* Minigame Styles */
-#minigame-columns {
+#snake-table {
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+}
+
+#snake-table th, #snake-table td {
+  border: 1px solid #555;
+  padding: 10px;
+  text-align: left;
+}
+
+#snake-table th {
+  background-color: #4a4a4a;
+}
+
+#minigame-guess {
+  margin-top: 20px;
+}
+
+#snake-image {
+  max-width: 200px;
+  border: 2px solid #555;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+/* Unsupervised Minigame Styles */
+#dog-minigame-columns {
   display: flex;
   justify-content: space-around;
   margin: 20px;
 }
 
-.minigame-column {
-  width: 30%;
+.dog-minigame-column {
+  width: 40%;
 }
 
-.minigame-dropzone {
+.dog-minigame-dropzone {
   border: 2px dashed #555;
   border-radius: 5px;
   padding: 10px;
-  min-height: 50px;
+  min-height: 150px;
 }
 
-#minigame-options {
+#dog-minigame-options {
   display: flex;
-  justify-content: space-around;
+  flex-wrap: wrap;
+  justify-content: center;
   margin: 20px;
 }
 
-.minigame-option {
+.dog-minigame-option {
   background-color: #4a4a4a;
-  padding: 10px;
+  padding: 10px 15px;
+  margin: 5px;
   border-radius: 5px;
   cursor: grab;
+  transition: background-color 0.3s;
 }
+
+.dog-minigame-option:hover {
+  background-color: #5a5a5a;
+}
+
 
 /* Fade-in Animation */
 @keyframes fadeIn {

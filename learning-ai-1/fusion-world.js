@@ -22,6 +22,9 @@ class FusionWorld {
     this.minigameModal = document.getElementById('minigame-modal');
     this.minigameSubmitBtn = document.getElementById('minigame-submit');
     this.minigameFeedbackEl = document.getElementById('minigame-feedback');
+    this.minigameModalUnsupervised = document.getElementById('minigame-modal-unsupervised');
+    this.minigameUnsupervisedFeedbackEl = document.getElementById('minigame-unsupervised-feedback');
+
 
     // Game settings
     this.canvas.width = 1000;
@@ -85,8 +88,11 @@ class FusionWorld {
     this.submitBtn.addEventListener('click', () => this.checkAnswer());
     this.startGameBtn.addEventListener('click', () => this.startGame());
     this.minigameSubmitBtn.addEventListener('click', () => this.checkMinigame());
+    this.minigameUnsupervisedSubmitBtn = document.getElementById('minigame-unsupervised-submit');
+    this.minigameUnsupervisedSubmitBtn.addEventListener('click', () => this.checkUnsupervisedMinigame());
     this.createInteractiveObjects();
     this.initMinigame();
+    this.initUnsupervisedMinigame();
     this.gameLoop();
   }
 
@@ -132,14 +138,14 @@ class FusionWorld {
 
   createInteractiveObjects() {
     this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
-    this.interactiveObjects.push({ x: 600, y: 400, width: 48, height: 48, question: '¿Cuántas vidas tiene un gato?', answer: '7' });
+    this.interactiveObjects.push({ x: 600, y: 400, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
     this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
 
   handleKeys(e, isDown) {
     if (!this.gameStarted) return;
     this.keys[e.key] = isDown;
-    if (e.key === 'e' && isDown) this.interact();
+    if (e.key === 'e' && isDown && !this.interactingWith) this.interact();
     if (e.key === 'Escape') this.hideDialog();
   }
 
@@ -274,6 +280,7 @@ class FusionWorld {
   hideDialog() {
     this.modal.style.display = 'none';
     this.minigameModal.style.display = 'none';
+    this.minigameModalUnsupervised.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -291,16 +298,44 @@ class FusionWorld {
     this.interactingWith = this.targetObject;
     if (minigame === 'learning-types') {
       this.minigameModal.style.display = 'block';
+      this.snakes = [
+        { src: './assets/serpientes/serp-tri.jpg', type: 'venenosa' },
+        { src: './assets/serpientes/serp-non.jpg', type: 'no venenosa' },
+        { src: './assets/serpientes/serp-oj.jpg', type: 'venenosa' },
+      ];
+      this.currentSnake = this.snakes[Math.floor(Math.random() * this.snakes.length)];
+      document.getElementById('snake-image').src = this.currentSnake.src;
+      document.getElementById('snake-answer').value = '';
+      this.minigameFeedbackEl.textContent = '';
+    } else if (minigame === 'unsupervised-learning') {
+      this.minigameModalUnsupervised.style.display = 'block';
+      this.minigameUnsupervisedFeedbackEl.textContent = '';
     }
   }
 
   initMinigame() {
-    const options = document.querySelectorAll('.minigame-option');
-    const dropzones = document.querySelectorAll('.minigame-dropzone');
+    // No longer needed for drag and drop
+  }
+
+  checkMinigame() {
+    const userAnswer = document.getElementById('snake-answer').value.toLowerCase().trim();
+    if (userAnswer === this.currentSnake.type) {
+      this.minigameFeedbackEl.textContent = '¡Correcto! Has clasificado correctamente la serpiente.';
+      setTimeout(() => this.hideDialog(), 2000);
+    } else {
+      this.minigameFeedbackEl.textContent = 'Incorrecto. Revisa la tabla de características y vuelve a intentarlo.';
+    }
+  }
+
+  initUnsupervisedMinigame() {
+    const options = document.querySelectorAll('.dog-minigame-option');
+    const dropzones = document.querySelectorAll('.dog-minigame-dropzone');
+    let draggedOption = null;
 
     options.forEach(option => {
       option.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', e.target.dataset.type);
+        draggedOption = e.target;
+        e.dataTransfer.setData('text/plain', e.target.id);
       });
     });
 
@@ -311,32 +346,41 @@ class FusionWorld {
 
       dropzone.addEventListener('drop', e => {
         e.preventDefault();
-        const type = e.dataTransfer.getData('text/plain');
-        const option = document.querySelector(`.minigame-option[data-type="${type}"]`);
-        if (option) {
-          e.target.appendChild(option);
+        if (draggedOption) {
+          if (e.target.classList.contains('dog-minigame-dropzone')) {
+            e.target.appendChild(draggedOption);
+          } else {
+            e.target.parentElement.appendChild(draggedOption);
+          }
+          draggedOption = null;
         }
       });
     });
   }
 
-  checkMinigame() {
-    const dropzones = document.querySelectorAll('.minigame-dropzone');
-    let correct = true;
+  checkUnsupervisedMinigame() {
+    const group1 = document.querySelector('.dog-minigame-dropzone[data-group="1"]');
+    const group2 = document.querySelector('.dog-minigame-dropzone[data-group="2"]');
+    const optionsContainer = document.getElementById('dog-minigame-options');
 
-    dropzones.forEach(dropzone => {
-      const type = dropzone.dataset.type;
-      const option = dropzone.querySelector('.minigame-option');
-      if (!option || option.dataset.type !== type) {
-        correct = false;
-      }
-    });
+    if (optionsContainer.children.length > 0) {
+        this.minigameUnsupervisedFeedbackEl.textContent = 'Debes clasificar todos los perros.';
+        return;
+    }
 
-    if (correct) {
-      this.minigameFeedbackEl.textContent = '¡Correcto!';
-      setTimeout(() => this.hideDialog(), 1000);
+    const group1Large = group1.querySelectorAll('.dog-minigame-option[data-size="large"]').length;
+    const group1Small = group1.querySelectorAll('.dog-minigame-option[data-size="small"]').length;
+    const group2Large = group2.querySelectorAll('.dog-minigame-option[data-size="large"]').length;
+    const group2Small = group2.querySelectorAll('.dog-minigame-option[data-size="small"]').length;
+
+    const case1 = group1Large === 3 && group1Small === 0 && group2Large === 0 && group2Small === 3;
+    const case2 = group1Large === 0 && group1Small === 3 && group2Large === 3 && group2Small === 0;
+
+    if (case1 || case2) {
+        this.minigameUnsupervisedFeedbackEl.textContent = '¡Correcto! Has descubierto el patrón (tamaño) y clasificado los perros correctamente.';
+        setTimeout(() => this.hideDialog(), 3000);
     } else {
-      this.minigameFeedbackEl.textContent = 'Incorrecto. Intenta de nuevo.';
+        this.minigameUnsupervisedFeedbackEl.textContent = 'Incorrecto. Intenta agruparlos de otra manera.';
     }
   }
 
@@ -361,17 +405,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    // this.interactiveObjects.forEach(obj => {
-    //   if (this.interactiveObjectSprite) {
-    //     this.ctx.drawImage(
-    //       this.interactiveObjectSprite,
-    //       obj.x - this.camera.x,
-    //       obj.y - this.camera.y,
-    //       obj.width,
-    //       obj.height
-    //     );
-    //   }
-    // });
+    this.interactiveObjects.forEach(obj => {
+      if (this.interactiveObjectSprite) {
+        this.ctx.drawImage(
+          this.interactiveObjectSprite,
+          obj.x - this.camera.x,
+          obj.y - this.camera.y,
+          obj.width,
+          obj.height
+        );
+      }
+    });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;
@@ -460,3 +504,4 @@ class FusionWorld {
 window.addEventListener('DOMContentLoaded', () => {
   new FusionWorld();
 });
+''

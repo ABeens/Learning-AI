@@ -37,32 +37,78 @@
   <div id="minigame-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="minigame-title">Tipos de Aprendizaje</h2>
+        <h2 id="minigame-title">Juego de Aprendizaje Supervisado</h2>
       </div>
       <div id="minigame-content">
-        <p>Hola, soy Jessica. Te ayudaré a aprender sobre los tipos de aprendizaje.</p>
-        <p>Arrastra cada descripción al tipo de aprendizaje correcto.</p>
-        <div id="minigame-columns">
-          <div class="minigame-column">
-            <h3>Supervisado</h3>
-            <div class="minigame-dropzone" data-type="supervised"></div>
-          </div>
-          <div class="minigame-column">
-            <h3>No Supervisado</h3>
-            <div class="minigame-dropzone" data-type="unsupervised"></div>
-          </div>
-          <div class="minigame-column">
-            <h3>Reforzado</h3>
-            <div class="minigame-dropzone" data-type="reinforced"></div>
-          </div>
+        <p>El aprendizaje supervisado es un tipo de inteligencia artificial en el que un modelo aprende a partir de datos que ya han sido etiquetados (tienen sus entredas y salidas claras). En este juego, tú harías el papel de la IA, tendrías los datos etiquetados y en base a eso inferirás los resultados.</p>
+        <div id="snake-characteristics">
+          <h3>Tabla de Características de Serpientes</h3>
+          <table id="snake-table">
+            <thead>
+              <tr>
+                <th>Característica</th>
+                <th>Ejemplo</th>
+                <th>Resultado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pupilas</td>
+                <td>Elípticas (como de gato)</td>
+                <td>Venenosa</td>
+              </tr>
+              <tr>
+                <td>Cabeza</td>
+                <td>Triangular</td>
+                <td>Venenosa</td>
+              </tr>
+              <tr>
+                <td>Pupilas</td>
+                <td>Redondas</td>
+                <td>No Venenosa</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div id="minigame-options">
-          <div class="minigame-option" draggable="true" data-type="supervised">Aprende de datos etiquetados.</div>
-          <div class="minigame-option" draggable="true" data-type="unsupervised">Encuentra patrones en datos no etiquetados.</div>
-          <div class="minigame-option" draggable="true" data-type="reinforced">Aprende a través de prueba y error.</div>
+        <div id="minigame-guess">
+          <h3>¿Esta serpiente es venenosa?</h3>
+          <img id="snake-image" src="" alt="Serpiente a clasificar">
+          <input type="text" id="snake-answer" placeholder="Escribe 'venenosa' o 'no venenosa'">
         </div>
         <button id="minigame-submit">Verificar</button>
         <p id="minigame-feedback"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-unsupervised" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-unsupervised">Juego de Aprendizaje No Supervisado</h2>
+      </div>
+      <div id="minigame-content-unsupervised">
+        <p>El aprendizaje no supervisado es un tipo de IA donde el modelo busca patrones en datos que no han sido etiquetados. A diferencia del aprendizaje supervisado, no se le dice al modelo cuál es la "respuesta correcta". En este juego, tu tarea es encontrar el patrón y clasificar los elementos en grupos.</p>
+        <p>Clasifica las siguientes razas de perros en dos grupos:</p>
+        <div id="dog-minigame-columns">
+          <div class="dog-minigame-column">
+            <h3>Grupo 1</h3>
+            <div class="dog-minigame-dropzone" data-group="1"></div>
+          </div>
+          <div class="dog-minigame-column">
+            <h3>Grupo 2</h3>
+            <div class="dog-minigame-dropzone" data-group="2"></div>
+          </div>
+        </div>
+        <div id="dog-minigame-options">
+          <div id="dog-1" class="dog-minigame-option" draggable="true" data-size="large">Gran Danés</div>
+          <div id="dog-2" class="dog-minigame-option" draggable="true" data-size="small">Chihuahua</div>
+          <div id="dog-3" class="dog-minigame-option" draggable="true" data-size="large">San Bernardo</div>
+          <div id="dog-4" class="dog-minigame-option" draggable="true" data-size="small">Pomerania</div>
+          <div id="dog-5" class="dog-minigame-option" draggable="true" data-size="large">Mastín</div>
+          <div id="dog-6" class="dog-minigame-option" draggable="true" data-size="small">Carlino</div>
+        </div>
+        <button id="minigame-unsupervised-submit" class="minigame-submit-button">Verificar</button>
+        <p id="minigame-unsupervised-feedback"></p>
       </div>
     </div>
   </div>
