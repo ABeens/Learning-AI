@@ -19,7 +19,8 @@ class FusionWorld {
     this.canvas.height = 600;
 
     // Collision map properties
-    this.collisionMap = collisionMapData;
+    this.collisionMap = collisionMapData.map(v => v === 0 ? 0 : 1); // Transformar a 0/1
+    console.log(collisionMapData.length); 
     this.tileWidth = 16; // Assuming 16x16 tiles
     this.tileHeight = 16; // Assuming 16x16 tiles
 
@@ -39,10 +40,10 @@ class FusionWorld {
 
     // Player properties
     this.player = {
-      x: 50,
-      y: 50,
-      width: 64,
-      height: 64,
+      x:0,
+      y: 290,
+      width: 48,
+      height: 48,
       speed: 5,
       sprite: null, // Idle sprite
       runSprite: null, // Running sprite
@@ -62,6 +63,7 @@ class FusionWorld {
     this.interactingWith = null;
     this.currentCorrectAnswer = null;
     this.backgroundImage = null;
+    this.interactiveObjectSprite = null;
 
     this.init();
   }
@@ -85,29 +87,35 @@ class FusionWorld {
         });
     };
 
-    const [background, playerSprite, playerRunSprite] = await Promise.all([
+    const [background, playerSprite, playerRunSprite, interactiveObjectSprite] = await Promise.all([
         loadImage('fusion-office.png'),
         loadImage('adam_idle.png'),
-        loadImage('adam_run.png')
+        loadImage('adam_run.png'),
+        loadImage('fusion-boty-no-bg.png')
     ]);
 
     this.backgroundImage = background;
     this.player.sprite = playerSprite;
     this.player.runSprite = playerRunSprite;
+    this.interactiveObjectSprite = interactiveObjectSprite;
 
     // Set world dimensions based on the map image size
-    this.world.width = this.backgroundImage.width;
-    this.world.height = this.backgroundImage.height;
+    this.world.width = 1920; // Assuming the background image is 1280px wide
+    this.world.height = 992;
 
     // Calculate map dimensions in tiles
-    this.mapWidthTiles = Math.floor(this.world.width / this.tileWidth);
-    this.mapHeightTiles = Math.floor(this.world.height / this.tileHeight);
+    this.mapWidthTiles = 120;
+    this.mapHeightTiles = 62;
+
+    console.log(`World dimensions: ${this.world.width}x${this.world.height}`);
+    console.log(`Map dimensions in tiles: ${this.mapWidthTiles}x${this.mapHeightTiles}`);
+    console.log(`Collision map length: ${this.collisionMap.length}`);
   }
 
   createInteractiveObjects() {
-    this.interactiveObjects.push({ x: 200, y: 150, width: 50, height: 50, color: '#4CAF50', question: '¿De qué color es el caballo blanco de Santiago?', answer: 'blanco' });
-    this.interactiveObjects.push({ x: 600, y: 400, width: 50, height: 50, color: '#2196F3', question: '¿Cuántas vidas tiene un gato?', answer: '7' });
-    this.interactiveObjects.push({ x: 400, y: 500, width: 50, height: 50, color: '#f44336', question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
+    this.interactiveObjects.push({ x: 200, y: 150, width: 48, height: 48, question: '¿De qué color es el caballo blanco de Santiago?', answer: 'blanco' });
+    this.interactiveObjects.push({ x: 600, y: 400, width: 48, height: 48, question: '¿Cuántas vidas tiene un gato?', answer: '7' });
+    this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
 
   handleKeys(e, isDown) {
@@ -267,10 +275,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    this.interactiveObjects.forEach(obj => {
-      this.ctx.fillStyle = obj.color;
-      this.ctx.fillRect(obj.x - this.camera.x, obj.y - this.camera.y, obj.width, obj.height);
-    });
+    // this.interactiveObjects.forEach(obj => {
+    //   if (this.interactiveObjectSprite) {
+    //     this.ctx.drawImage(
+    //       this.interactiveObjectSprite,
+    //       obj.x - this.camera.x,
+    //       obj.y - this.camera.y,
+    //       obj.width,
+    //       obj.height
+    //     );
+    //   }
+    // });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;
@@ -313,7 +328,7 @@ class FusionWorld {
       );
     }
 
-    this.drawCollisionDebug(); // Call debug drawing
+    //this.drawCollisionDebug(); // Call debug drawing
   }
 
   drawCollisionDebug() {
@@ -334,6 +349,7 @@ class FusionWorld {
       for (let col = 0; col < this.mapWidthTiles; col++) {
         const tileIndex = row * this.mapWidthTiles + col;
         if (this.collisionMap[tileIndex] !== 0) {
+          //console.log(`Collision tile at (${col}, ${row})`);
           this.ctx.strokeRect(
             col * this.tileWidth - this.camera.x,
             row * this.tileHeight - this.camera.y + 1,
