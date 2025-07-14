@@ -14,6 +14,10 @@ class FusionWorld {
     this.submitBtn = document.getElementById('submit-answer');
     this.feedbackEl = document.getElementById('feedback');
 
+    // Intro modal elements
+    this.introModal = document.getElementById('intro-modal');
+    this.startGameBtn = document.getElementById('start-game');
+
     // Game settings
     this.canvas.width = 800;
     this.canvas.height = 600;
@@ -64,6 +68,7 @@ class FusionWorld {
     this.currentCorrectAnswer = null;
     this.backgroundImage = null;
     this.interactiveObjectSprite = null;
+    this.gameStarted = false;
 
     this.init();
   }
@@ -73,8 +78,14 @@ class FusionWorld {
     document.addEventListener('keydown', (e) => this.handleKeys(e, true));
     document.addEventListener('keyup', (e) => this.handleKeys(e, false));
     this.submitBtn.addEventListener('click', () => this.checkAnswer());
+    this.startGameBtn.addEventListener('click', () => this.startGame());
     this.createInteractiveObjects();
     this.gameLoop();
+  }
+
+  startGame() {
+    this.introModal.style.display = 'none';
+    this.gameStarted = true;
   }
 
   async loadAssets() {
@@ -119,12 +130,14 @@ class FusionWorld {
   }
 
   handleKeys(e, isDown) {
+    if (!this.gameStarted) return;
     this.keys[e.key] = isDown;
     if (e.key === 'e' && isDown) this.interact();
     if (e.key === 'Escape') this.hideDialog();
   }
 
   updatePlayerPosition() {
+    if (!this.gameStarted) return;
     this.player.isMoving = false;
     let newPlayerX = this.player.x;
     let newPlayerY = this.player.y;
@@ -191,7 +204,7 @@ class FusionWorld {
   }
 
   updateAnimation() {
-    if (!this.player.isMoving) {
+    if (!this.gameStarted || !this.player.isMoving) {
         this.player.animationFrame = 0;
         this.player.animationCounter = 0;
         return;
@@ -204,6 +217,7 @@ class FusionWorld {
   }
 
   updateCamera() {
+    if (!this.gameStarted) return;
     // Center camera on player
     this.camera.x = this.player.x - this.camera.width / 2;
     this.camera.y = this.player.y - this.camera.height / 2;
@@ -214,6 +228,7 @@ class FusionWorld {
   }
 
   checkInteractionZone() {
+    if (!this.gameStarted) return;
     let inZone = false;
     for (const obj of this.interactiveObjects) {
       const dist = Math.hypot(this.player.x - obj.x, this.player.y - obj.y);
@@ -263,6 +278,12 @@ class FusionWorld {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    if (!this.gameStarted) {
+      this.ctx.fillStyle = 'black';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      return;
+    }
+
     // Draw background relative to camera
     if (this.backgroundImage) {
         this.ctx.drawImage(
@@ -275,17 +296,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    // this.interactiveObjects.forEach(obj => {
-    //   if (this.interactiveObjectSprite) {
-    //     this.ctx.drawImage(
-    //       this.interactiveObjectSprite,
-    //       obj.x - this.camera.x,
-    //       obj.y - this.camera.y,
-    //       obj.width,
-    //       obj.height
-    //     );
-    //   }
-    // });
+    this.interactiveObjects.forEach(obj => {
+      if (this.interactiveObjectSprite) {
+        this.ctx.drawImage(
+          this.interactiveObjectSprite,
+          obj.x - this.camera.x,
+          obj.y - this.camera.y,
+          obj.width,
+          obj.height
+        );
+      }
+    });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;

@@ -38,6 +38,7 @@ body {
   color: #fff;
   margin: 15% auto;
   padding: 0;
+  padding-bottom: 20px;
   border: 2px solid #555;
   width: 90%;
   max-width: 550px;
@@ -53,13 +54,13 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title {
+#question-title, #intro-title {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
 }
 
-#question {
+#question, #intro-text {
     padding: 20px;
     font-size: 1.2em;
     line-height: 1.6;
@@ -76,7 +77,7 @@ body {
   font-size: 1em;
 }
 
-#submit-answer {
+#submit-answer, #start-game {
   background-color: #ff8f00; /* Orange button */
   color: #fff;
   border: none;
@@ -88,7 +89,7 @@ body {
   transition: background-color 0.3s;
 }
 
-#submit-answer:hover {
+#submit-answer:hover, #start-game:hover {
   background-color: #ff6f00; /* Darker orange on hover */
 }
 
