@@ -17,7 +17,7 @@
       <div class="modal-header">
         <h2 id="intro-title">Bienvenido a las oficinas de Fusion HIT</h2>
       </div>
-      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y superar los desafíos que te esperan.</p>
+      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío (son 6 en total).</p>
       <button id="start-game">Comenzar</button>
     </div>
   </div>
@@ -31,6 +31,39 @@
       <input type="text" id="answer" placeholder="Escribe tu respuesta...">
       <button id="submit-answer">Confirmar</button>
       <p id="feedback"></p>
+    </div>
+  </div>
+
+  <div id="minigame-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title">Tipos de Aprendizaje</h2>
+      </div>
+      <div id="minigame-content">
+        <p>Hola, soy Jessica. Te ayudaré a aprender sobre los tipos de aprendizaje.</p>
+        <p>Arrastra cada descripción al tipo de aprendizaje correcto.</p>
+        <div id="minigame-columns">
+          <div class="minigame-column">
+            <h3>Supervisado</h3>
+            <div class="minigame-dropzone" data-type="supervised"></div>
+          </div>
+          <div class="minigame-column">
+            <h3>No Supervisado</h3>
+            <div class="minigame-dropzone" data-type="unsupervised"></div>
+          </div>
+          <div class="minigame-column">
+            <h3>Reforzado</h3>
+            <div class="minigame-dropzone" data-type="reinforced"></div>
+          </div>
+        </div>
+        <div id="minigame-options">
+          <div class="minigame-option" draggable="true" data-type="supervised">Aprende de datos etiquetados.</div>
+          <div class="minigame-option" draggable="true" data-type="unsupervised">Encuentra patrones en datos no etiquetados.</div>
+          <div class="minigame-option" draggable="true" data-type="reinforced">Aprende a través de prueba y error.</div>
+        </div>
+        <button id="minigame-submit">Verificar</button>
+        <p id="minigame-feedback"></p>
+      </div>
     </div>
   </div>
 

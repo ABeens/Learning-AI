@@ -18,9 +18,14 @@ class FusionWorld {
     this.introModal = document.getElementById('intro-modal');
     this.startGameBtn = document.getElementById('start-game');
 
+    // Minigame modal elements
+    this.minigameModal = document.getElementById('minigame-modal');
+    this.minigameSubmitBtn = document.getElementById('minigame-submit');
+    this.minigameFeedbackEl = document.getElementById('minigame-feedback');
+
     // Game settings
-    this.canvas.width = 800;
-    this.canvas.height = 600;
+    this.canvas.width = 1000;
+    this.canvas.height = 700;
 
     // Collision map properties
     this.collisionMap = collisionMapData.map(v => v === 0 ? 0 : 1); // Transformar a 0/1
@@ -79,7 +84,9 @@ class FusionWorld {
     document.addEventListener('keyup', (e) => this.handleKeys(e, false));
     this.submitBtn.addEventListener('click', () => this.checkAnswer());
     this.startGameBtn.addEventListener('click', () => this.startGame());
+    this.minigameSubmitBtn.addEventListener('click', () => this.checkMinigame());
     this.createInteractiveObjects();
+    this.initMinigame();
     this.gameLoop();
   }
 
@@ -124,7 +131,7 @@ class FusionWorld {
   }
 
   createInteractiveObjects() {
-    this.interactiveObjects.push({ x: 200, y: 150, width: 48, height: 48, question: '¿De qué color es el caballo blanco de Santiago?', answer: 'blanco' });
+    this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
     this.interactiveObjects.push({ x: 600, y: 400, width: 48, height: 48, question: '¿Cuántas vidas tiene un gato?', answer: '7' });
     this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
@@ -245,7 +252,13 @@ class FusionWorld {
   }
 
   interact() {
-    if (this.targetObject) this.showDialog(this.targetObject);
+    if (this.targetObject) {
+      if (this.targetObject.type === 'minigame') {
+        this.showMinigame(this.targetObject.minigame);
+      } else {
+        this.showDialog(this.targetObject);
+      }
+    }
   }
 
   showDialog(obj) {
@@ -260,6 +273,7 @@ class FusionWorld {
 
   hideDialog() {
     this.modal.style.display = 'none';
+    this.minigameModal.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -273,7 +287,58 @@ class FusionWorld {
     }
   }
 
-  
+  showMinigame(minigame) {
+    this.interactingWith = this.targetObject;
+    if (minigame === 'learning-types') {
+      this.minigameModal.style.display = 'block';
+    }
+  }
+
+  initMinigame() {
+    const options = document.querySelectorAll('.minigame-option');
+    const dropzones = document.querySelectorAll('.minigame-dropzone');
+
+    options.forEach(option => {
+      option.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', e.target.dataset.type);
+      });
+    });
+
+    dropzones.forEach(dropzone => {
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('text/plain');
+        const option = document.querySelector(`.minigame-option[data-type="${type}"]`);
+        if (option) {
+          e.target.appendChild(option);
+        }
+      });
+    });
+  }
+
+  checkMinigame() {
+    const dropzones = document.querySelectorAll('.minigame-dropzone');
+    let correct = true;
+
+    dropzones.forEach(dropzone => {
+      const type = dropzone.dataset.type;
+      const option = dropzone.querySelector('.minigame-option');
+      if (!option || option.dataset.type !== type) {
+        correct = false;
+      }
+    });
+
+    if (correct) {
+      this.minigameFeedbackEl.textContent = '¡Correcto!';
+      setTimeout(() => this.hideDialog(), 1000);
+    } else {
+      this.minigameFeedbackEl.textContent = 'Incorrecto. Intenta de nuevo.';
+    }
+  }
 
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -296,17 +361,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    this.interactiveObjects.forEach(obj => {
-      if (this.interactiveObjectSprite) {
-        this.ctx.drawImage(
-          this.interactiveObjectSprite,
-          obj.x - this.camera.x,
-          obj.y - this.camera.y,
-          obj.width,
-          obj.height
-        );
-      }
-    });
+    // this.interactiveObjects.forEach(obj => {
+    //   if (this.interactiveObjectSprite) {
+    //     this.ctx.drawImage(
+    //       this.interactiveObjectSprite,
+    //       obj.x - this.camera.x,
+    //       obj.y - this.camera.y,
+    //       obj.width,
+    //       obj.height
+    //     );
+    //   }
+    // });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;

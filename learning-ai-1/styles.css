@@ -54,7 +54,7 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title {
+#question-title, #intro-title, #minigame-title {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
@@ -77,7 +77,7 @@ body {
   font-size: 1em;
 }
 
-#submit-answer, #start-game {
+#submit-answer, #start-game, #minigame-submit {
   background-color: #ff8f00; /* Orange button */
   color: #fff;
   border: none;
@@ -89,14 +89,45 @@ body {
   transition: background-color 0.3s;
 }
 
-#submit-answer:hover, #start-game:hover {
+#submit-answer:hover, #start-game:hover, #minigame-submit:hover {
   background-color: #ff6f00; /* Darker orange on hover */
 }
 
-#feedback {
+#feedback, #minigame-feedback {
   padding-bottom: 20px;
   min-height: 24px; /* Reserve space for feedback */
   font-style: italic;
+}
+
+/* Minigame Styles */
+#minigame-columns {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px;
+}
+
+.minigame-column {
+  width: 30%;
+}
+
+.minigame-dropzone {
+  border: 2px dashed #555;
+  border-radius: 5px;
+  padding: 10px;
+  min-height: 50px;
+}
+
+#minigame-options {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px;
+}
+
+.minigame-option {
+  background-color: #4a4a4a;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: grab;
 }
 
 /* Fade-in Animation */
