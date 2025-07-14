@@ -28,7 +28,7 @@ class FusionWorld {
 
     // Game settings
     this.canvas.width = 1000;
-    this.canvas.height = 700;
+    this.canvas.height = 650;
 
     // Collision map properties
     this.collisionMap = collisionMapData.map(v => v === 0 ? 0 : 1); // Transformar a 0/1
