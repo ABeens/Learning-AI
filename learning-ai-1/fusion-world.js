@@ -405,17 +405,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    this.interactiveObjects.forEach(obj => {
-      if (this.interactiveObjectSprite) {
-        this.ctx.drawImage(
-          this.interactiveObjectSprite,
-          obj.x - this.camera.x,
-          obj.y - this.camera.y,
-          obj.width,
-          obj.height
-        );
-      }
-    });
+    // this.interactiveObjects.forEach(obj => {
+    //   if (this.interactiveObjectSprite) {
+    //     this.ctx.drawImage(
+    //       this.interactiveObjectSprite,
+    //       obj.x - this.camera.x,
+    //       obj.y - this.camera.y,
+    //       obj.width,
+    //       obj.height
+    //     );
+    //   }
+    // });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;
