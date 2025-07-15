@@ -41,7 +41,7 @@
   <div id="minigame-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="minigame-title">Juego de Aprendizaje Supervisado</h2>
+        <h2 id="minigame-title">Supervisado: Aprende con Ejemplos</h2>
       </div>
       <div id="minigame-content">
         <p>El aprendizaje supervisado es un tipo de inteligencia artificial en el que un modelo aprende a partir de datos que ya han sido etiquetados (tienen sus entredas y salidas claras). En este juego, tú harías el papel de la IA, tendrías los datos etiquetados y en base a eso inferirás los resultados.</p>
@@ -123,15 +123,39 @@
         <h2 id="minigame-title-reinforced">Juego de Aprendizaje por Refuerzo</h2>
       </div>
       <div id="minigame-content-reinforced">
-        <p>En este juego, un agente aprenderá a navegar un laberinto para llegar a un objetivo, evitando obstáculos. Observa cómo mejora su estrategia a través de la prueba y error, recibiendo recompensas y penalizaciones.</p>
+        <p>El aprendizaje por refuerzo es un tipo de IA donde un agente aprende a tomar decisiones interactuando con un entorno, recibiendo recompensas o castigos. Ayuda al robot a encontrar el camino.</p>
         <canvas id="reinforced-learning-canvas" width="300" height="300" style="border: 2px solid #555; background-color: #2a2a2a;"></canvas>
         <div style="margin-top: 10px;">
-          <button id="rl-next-step" class="minigame-submit-button">Siguiente Paso</button>
+          <button id="rl-next-step" class="minigame-submit-button">Mover robot</button>
           <button id="rl-reward" class="minigame-submit-button" style="background-color: #28a745;">Recompensa (+)</button>
           <button id="rl-punish" class="minigame-submit-button" style="background-color: #dc3545;">Castigo (-)</button>
         </div>
         <p id="rl-feedback"></p>
         <p>Objetivos Completados: <span id="rl-goals-reached">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-bias" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-bias">Sesgo Cognitivo: Sesgo de Confirmación</h2>
+      </div>
+      <div id="minigame-content-bias">
+        <p>Imagina que eres un científico que investiga la eficacia de un nuevo fertilizante, "Fertilizante X", en el crecimiento de las plantas. Tu hipótesis inicial es que el Fertilizante X hace que las plantas crezcan más rápido.</p>
+        <p>A continuación, se te presentan varios resultados de experimentos. Selecciona SOLO los resultados que crees que confirman tu hipótesis.</p>
+        
+        <div class="bias-evidence-options">
+          <label><input type="checkbox" name="evidence" value="positive1"> Las plantas tratadas con Fertilizante X crecieron un 20% más que el grupo de control.</label><br>
+          <label><input type="checkbox" name="evidence" value="negative1"> Algunas plantas tratadas con Fertilizante X mostraron un crecimiento más lento de lo esperado.</label><br>
+          <label><input type="checkbox" name="evidence" value="positive2"> El 85% de los agricultores que usaron Fertilizante X reportaron cosechas abundantes.</label><br>
+          <label><input type="checkbox" name="evidence" value="neutral1"> El color de las hojas de las plantas tratadas con Fertilizante X no mostró cambios significativos.</label><br>
+          <label><input type="checkbox" name="evidence" value="negative2"> Un estudio independiente encontró que Fertilizante X no tuvo un impacto estadísticamente significativo en el rendimiento de los cultivos.</label><br>
+          <label><input type="checkbox" name="evidence" value="positive3"> Las pruebas de laboratorio confirmaron una mayor absorción de nutrientes en las plantas con Fertilizante X.</label><br>
+        </div>
+
+        <button id="bias-submit" class="minigame-submit-button">Verificar</button>
+        <p id="bias-feedback"></p>
       </div>
     </div>
   </div>

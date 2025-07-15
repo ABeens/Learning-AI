@@ -52,10 +52,9 @@ body {
   overflow: hidden; /* Ensures header fits within rounded corners */
 }
 
-#minigame-content p:first-of-type,
-#snake-characteristics {
-    text-align: left;
-    padding: 0 20px;
+.modal-content > *:not(.modal-header) {
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 #snake-characteristics ul {
@@ -68,7 +67,7 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */

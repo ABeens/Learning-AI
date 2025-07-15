@@ -27,6 +27,8 @@ class FusionWorld {
     this.minigameUnsupervisedFeedbackEl = document.getElementById('minigame-unsupervised-feedback');
     this.minigameModalReinforced = document.getElementById('minigame-modal-reinforced');
     this.rlFeedbackEl = document.getElementById('rl-feedback');
+    this.minigameModalBias = document.getElementById('minigame-modal-bias');
+    this.biasFeedbackEl = document.getElementById('bias-feedback');
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
     this.rlPunishBtn = document.getElementById('rl-punish');
@@ -150,6 +152,7 @@ class FusionWorld {
     this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
     this.interactiveObjects.push({ x: 300, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
     this.interactiveObjects.push({ x: 500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
+    this.interactiveObjects.push({ x: 600, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
     this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
 
@@ -293,6 +296,7 @@ class FusionWorld {
     this.minigameModal.style.display = 'none';
     this.minigameModalUnsupervised.style.display = 'none';
     this.minigameModalReinforced.style.display = 'none';
+    this.minigameModalBias.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -326,6 +330,9 @@ class FusionWorld {
     } else if (minigame === 'reinforced-learning') {
       this.minigameModalReinforced.style.display = 'block';
       this.initReinforcedLearningMinigame();
+    } else if (minigame === 'cognitive-bias') {
+      this.minigameModalBias.style.display = 'block';
+      this.initBiasMinigame();
     }
   }
 
@@ -408,25 +415,24 @@ class FusionWorld {
     this.rlCtx = this.rlCanvas.getContext('2d');
     this.rlGoalsReachedEl.textContent = '0';
 
-    this.gridSize = 10;
+    this.gridSize = 5;
     this.cellSize = this.rlCanvas.width / this.gridSize;
     this.agentPos = { x: 0, y: 0 };
     this.goalPos = { x: this.gridSize - 1, y: this.gridSize - 1 };
     this.obstacles = [
-      { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 },
-      { x: 2, y: 3 }, { x: 2, y: 4 },
-      { x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 },
-      { x: 7, y: 6 }, { x: 7, y: 5 },
+      { x: 1, y: 1 }, { x: 1, y: 3 }, { x: 3, y: 1 }, { x: 3, y: 3 }
     ];
     this.qTable = {}; // Q-learning table: state -> action -> Q-value
     this.learningRate = 0.1;
     this.discountFactor = 0.9;
-    this.epsilon = 0.1; // Exploration rate
+    this.epsilon = 0.5; // Exploration rate
     this.goalsReached = 0;
-    this.maxGoals = 3; // Number of times agent needs to reach goal to complete minigame
+    this.maxGoals = 1; // Number of times agent needs to reach goal to complete minigame
     this.lastAction = null;
     this.lastState = null;
-    this.rlFeedbackEl.textContent = 'Ayuda al agente a llegar al objetivo (verde) recompensándolo.';
+    this.rlFeedbackEl.textContent = 'Ayuda al robot a encontrar el camino (verde) recompensándolo.';
+    this.robotImage = new Image();
+    this.robotImage.src = 'fusion-boty-no-bg.png';
     this.drawReinforcedLearningGrid();
   }
 
@@ -450,17 +456,16 @@ class FusionWorld {
     this.rlCtx.fillStyle = 'green';
     this.rlCtx.fillRect(this.goalPos.x * this.cellSize, this.goalPos.y * this.cellSize, this.cellSize, this.cellSize);
 
-    // Draw agent
-    this.rlCtx.fillStyle = 'blue';
-    this.rlCtx.beginPath();
-    this.rlCtx.arc(
-      this.agentPos.x * this.cellSize + this.cellSize / 2,
-      this.agentPos.y * this.cellSize + this.cellSize / 2,
-      this.cellSize / 3,
-      0,
-      Math.PI * 2
-    );
-    this.rlCtx.fill();
+    // Draw agent (robot image)
+    if (this.robotImage) {
+      this.rlCtx.drawImage(
+        this.robotImage,
+        this.agentPos.x * this.cellSize,
+        this.agentPos.y * this.cellSize,
+        this.cellSize,
+        this.cellSize
+      );
+    }
   }
 
   takeNextStep() {
@@ -483,8 +488,9 @@ class FusionWorld {
         this.rlFeedbackEl.textContent = '¡Minijuego completado! El agente ha aprendido a llegar al objetivo.';
         markMinigameAsCompleted('reinforced-learning');
         setTimeout(() => this.hideDialog(), 3000);
+      } else {
+        this.agentPos = { x: 0, y: 0 }; // Reset agent for next goal
       }
-      this.agentPos = { x: 0, y: 0 }; // Reset agent for next goal
       this.drawReinforcedLearningGrid();
     } else if (this.obstacles.some(obs => obs.x === newPos.x && obs.y === newPos.y)) {
       this.rlFeedbackEl.textContent = '¡Agente chocó con un obstáculo! Castígalo para que aprenda a evitarlo.';
@@ -610,6 +616,45 @@ class FusionWorld {
       });
     }
     return maxQ;
+  }
+
+  // Cognitive Bias Minigame Logic
+  initBiasMinigame() {
+    this.biasSubmitBtn = document.getElementById('bias-submit');
+    this.biasSubmitBtn.addEventListener('click', () => this.checkBiasMinigame());
+    this.biasFeedbackEl.textContent = '';
+    // Reset checkboxes
+    document.querySelectorAll('input[name="evidence"]').forEach(checkbox => {
+      checkbox.checked = false;
+    });
+  }
+
+  checkBiasMinigame() {
+    const selectedEvidence = Array.from(document.querySelectorAll('input[name="evidence"]:checked')).map(cb => cb.value);
+    const positiveEvidence = ['positive1', 'positive2', 'positive3'];
+    const negativeEvidence = ['negative1', 'negative2'];
+    const neutralEvidence = ['neutral1'];
+
+    let hasPositive = false;
+    let hasNegative = false;
+    let hasNeutral = false;
+
+    selectedEvidence.forEach(evidence => {
+      if (positiveEvidence.includes(evidence)) hasPositive = true;
+      if (negativeEvidence.includes(evidence)) hasNegative = true;
+      if (neutralEvidence.includes(evidence)) hasNeutral = true;
+    });
+
+    // If they only selected positive evidence, they exhibited confirmation bias
+    if (hasPositive && !hasNegative && !hasNeutral) {
+      this.biasFeedbackEl.textContent = '¡Correcto! Has demostrado el sesgo de confirmación al seleccionar solo la evidencia que apoya tu hipótesis. En la ciencia, es crucial considerar toda la evidencia.';
+      markMinigameAsCompleted('cognitive-bias');
+      setTimeout(() => this.hideDialog(), 5000);
+    } else if (selectedEvidence.length === 0) {
+      this.biasFeedbackEl.textContent = 'Por favor, selecciona al menos una opción.';
+    } else {
+      this.biasFeedbackEl.textContent = 'No has demostrado el sesgo de confirmación. Intenta seleccionar solo la evidencia que apoya la hipótesis inicial.';
+    }
   }
 
   draw() {
