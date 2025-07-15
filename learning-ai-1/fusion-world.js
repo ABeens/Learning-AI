@@ -628,7 +628,7 @@ class FusionWorld {
     this.biasEstimateInput.value = '';
 
     this.anchorValueEl = document.getElementById('anchor-value');
-    this.correctAnswer = 54; // Actual number of countries in Africa
+    this.correctAnswer = 1500; // Approximate number of active volcanoes in the world
 
     // Randomly choose a high or low anchor
     if (Math.random() < 0.5) {
