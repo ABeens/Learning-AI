@@ -618,43 +618,59 @@ class FusionWorld {
     return maxQ;
   }
 
-  // Cognitive Bias Minigame Logic
+  // Cognitive Bias Minigame Logic (Anchoring Bias)
   initBiasMinigame() {
     this.biasSubmitBtn = document.getElementById('bias-submit');
+    this.biasSubmitBtn.removeEventListener('click', this.checkBiasMinigame);
     this.biasSubmitBtn.addEventListener('click', () => this.checkBiasMinigame());
     this.biasFeedbackEl.textContent = '';
-    // Reset checkboxes
-    document.querySelectorAll('input[name="evidence"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
+    this.biasEstimateInput = document.getElementById('bias-estimate');
+    this.biasEstimateInput.value = '';
+
+    this.anchorValueEl = document.getElementById('anchor-value');
+    this.correctAnswer = 54; // Actual number of countries in Africa
+
+    // Randomly choose a high or low anchor
+    if (Math.random() < 0.5) {
+      this.anchor = 20; // Low anchor
+    } else {
+      this.anchor = 100; // High anchor
+    }
+    this.anchorValueEl.textContent = this.anchor;
   }
 
   checkBiasMinigame() {
-    const selectedEvidence = Array.from(document.querySelectorAll('input[name="evidence"]:checked')).map(cb => cb.value);
-    const positiveEvidence = ['positive1', 'positive2', 'positive3'];
-    const negativeEvidence = ['negative1', 'negative2'];
-    const neutralEvidence = ['neutral1'];
+    const userEstimate = parseInt(this.biasEstimateInput.value);
 
-    let hasPositive = false;
-    let hasNegative = false;
-    let hasNeutral = false;
-
-    selectedEvidence.forEach(evidence => {
-      if (positiveEvidence.includes(evidence)) hasPositive = true;
-      if (negativeEvidence.includes(evidence)) hasNegative = true;
-      if (neutralEvidence.includes(evidence)) hasNeutral = true;
-    });
-
-    // If they only selected positive evidence, they exhibited confirmation bias
-    if (hasPositive && !hasNegative && !hasNeutral) {
-      this.biasFeedbackEl.textContent = '¡Correcto! Has demostrado el sesgo de confirmación al seleccionar solo la evidencia que apoya tu hipótesis. En la ciencia, es crucial considerar toda la evidencia.';
-      markMinigameAsCompleted('cognitive-bias');
-      setTimeout(() => this.hideDialog(), 5000);
-    } else if (selectedEvidence.length === 0) {
-      this.biasFeedbackEl.textContent = 'Por favor, selecciona al menos una opción.';
-    } else {
-      this.biasFeedbackEl.textContent = 'No has demostrado el sesgo de confirmación. Intenta seleccionar solo la evidencia que apoya la hipótesis inicial.';
+    if (isNaN(userEstimate)) {
+      this.biasFeedbackEl.textContent = 'Por favor, introduce un número válido.';
+      return;
     }
+
+    let feedbackMessage = `La respuesta correcta es ${this.correctAnswer}.`;
+
+    if (this.anchor === 10) {
+      if (userEstimate < this.correctAnswer) {
+        feedbackMessage += ` Tu estimación de ${userEstimate} es menor que la respuesta correcta. Es posible que el ancla baja (${this.anchor}) haya influido en tu juicio.`;
+      } else if (userEstimate > this.correctAnswer) {
+        feedbackMessage += ` Tu estimación de ${userEstimate} es mayor que la respuesta correcta. Aunque el ancla era baja (${this.anchor}), tu estimación fue más alta.`;
+      } else {
+        feedbackMessage += ` ¡Tu estimación de ${userEstimate} es correcta!`;
+      }
+    } else { // High anchor
+      if (userEstimate > this.correctAnswer) {
+        feedbackMessage += ` Tu estimación de ${userEstimate} es mayor que la respuesta correcta. Es posible que el ancla alta (${this.anchor}) haya influido en tu juicio.`;
+      } else if (userEstimate < this.correctAnswer) {
+        feedbackMessage += ` Tu estimación de ${userEstimate} es menor que la respuesta correcta. Aunque el ancla era alta (${this.anchor}), tu estimación fue más baja.`;
+      } else {
+        feedbackMessage += ` ¡Tu estimación de ${userEstimate} es correcta!`;
+      }
+    }
+
+    feedbackMessage += ` El sesgo de anclaje demuestra cómo un número inicial puede influir en nuestras decisiones, incluso si es irrelevante.`;
+    this.biasFeedbackEl.textContent = feedbackMessage;
+    markMinigameAsCompleted('cognitive-bias');
+    setTimeout(() => this.hideDialog(), 10000); // Give time to read feedback
   }
 
   draw() {

@@ -142,19 +142,13 @@
         <h2 id="minigame-title-bias">Sesgo Cognitivo: Sesgo de Confirmación</h2>
       </div>
       <div id="minigame-content-bias">
-        <p>Imagina que eres un científico que investiga la eficacia de un nuevo fertilizante, "Fertilizante X", en el crecimiento de las plantas. Tu hipótesis inicial es que el Fertilizante X hace que las plantas crezcan más rápido.</p>
-        <p>A continuación, se te presentan varios resultados de experimentos. Selecciona SOLO los resultados que crees que confirman tu hipótesis.</p>
-        
-        <div class="bias-evidence-options">
-          <label><input type="checkbox" name="evidence" value="positive1"> Las plantas tratadas con Fertilizante X crecieron un 20% más que el grupo de control.</label><br>
-          <label><input type="checkbox" name="evidence" value="negative1"> Algunas plantas tratadas con Fertilizante X mostraron un crecimiento más lento de lo esperado.</label><br>
-          <label><input type="checkbox" name="evidence" value="positive2"> El 85% de los agricultores que usaron Fertilizante X reportaron cosechas abundantes.</label><br>
-          <label><input type="checkbox" name="evidence" value="neutral1"> El color de las hojas de las plantas tratadas con Fertilizante X no mostró cambios significativos.</label><br>
-          <label><input type="checkbox" name="evidence" value="negative2"> Un estudio independiente encontró que Fertilizante X no tuvo un impacto estadísticamente significativo en el rendimiento de los cultivos.</label><br>
-          <label><input type="checkbox" name="evidence" value="positive3"> Las pruebas de laboratorio confirmaron una mayor absorción de nutrientes en las plantas con Fertilizante X.</label><br>
-        </div>
-
-        <button id="bias-submit" class="minigame-submit-button">Verificar</button>
+        <p>El <strong>sesgo en la IA</strong> se refiere a situaciones en las que un sistema de inteligencia artificial produce resultados que son injustos, discriminatorios o inexactos debido a suposiciones erróneas en el proceso de aprendizaje. Estos sesgos pueden originarse en los datos de entrenamiento, en el diseño del algoritmo o en la forma en que se interpreta la información.</p>
+        <p>En este minijuego, experimentarás el <strong>Sesgo de Anclaje</strong>. Un número inicial (el "ancla"), incluso si es irrelevante, puede influir en tu estimación posterior.</p>
+        <p><strong>Pregunta:</strong> ¿Cuántos países hay en África?</p>
+        <p style="font-size: 1.5em; font-weight: bold; color: #ffc107;">¿Es más o menos de <span id="anchor-value">X</span>?</p>
+        <p>Tu estimación:</p>
+        <input type="number" id="bias-estimate" placeholder="Introduce tu número aquí..." class="minigame-input">
+        <button id="bias-submit" class="minigame-submit-button">Estimar</button>
         <p id="bias-feedback"></p>
       </div>
     </div>

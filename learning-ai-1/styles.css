@@ -79,7 +79,7 @@ body {
     line-height: 1.6;
 }
 
-#answer, #snake-answer {
+#answer, #snake-answer, .minigame-input {
   width: calc(100% - 40px);
   padding: 12px;
   margin-bottom: 20px;
