@@ -23,15 +23,20 @@ class FusionWorld {
     this.minigameModal = document.getElementById('minigame-modal');
     this.minigameSubmitBtn = document.getElementById('minigame-submit');
     this.minigameFeedbackEl = document.getElementById('minigame-feedback');
+    this.minigameTimerEl = document.getElementById('minigame-timer');
     this.minigameModalUnsupervised = document.getElementById('minigame-modal-unsupervised');
     this.minigameUnsupervisedFeedbackEl = document.getElementById('minigame-unsupervised-feedback');
+    this.minigameUnsupervisedTimerEl = document.getElementById('minigame-unsupervised-timer');
     this.minigameModalReinforced = document.getElementById('minigame-modal-reinforced');
     this.rlFeedbackEl = document.getElementById('rl-feedback');
+    this.rlTimerEl = document.getElementById('rl-timer');
     this.minigameModalBias = document.getElementById('minigame-modal-bias');
     this.biasFeedbackEl = document.getElementById('bias-feedback');
+    this.biasTimerEl = document.getElementById('bias-timer');
     this.minigameModalDataBias = document.getElementById('minigame-modal-data-bias');
     this.dataRelevanceSubmitBtn = document.getElementById('data-relevance-submit');
     this.dataRelevanceFeedbackEl = document.getElementById('data-relevance-feedback');
+    this.dataRelevanceTimerEl = document.getElementById('data-relevance-timer');
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
     this.rlPunishBtn = document.getElementById('rl-punish');
@@ -404,10 +409,24 @@ class FusionWorld {
     if (relevantCorrect && irrelevantCorrect) {
         this.dataRelevanceFeedbackEl.textContent = '¡Correcto! Has clasificado los datos correctamente. Usando estas variables tu modelo va a recibir un entrenamiento más objetivo.';
         markMinigameAsCompleted('data-relevance');
-        setTimeout(() => this.hideDialog(), 5000);
+        this.startMinigameTimer(this.dataRelevanceTimerEl, 5); // Start 5-second timer
     } else {
         this.dataRelevanceFeedbackEl.textContent = 'Incorrecto. Revisa tu clasificación.';
     }
+  }
+
+  startMinigameTimer(timerElement, duration) {
+    let timer = duration;
+    timerElement.textContent = `Cerrando en ${timer} segundos...`;
+    const countdown = setInterval(() => {
+      timer--;
+      if (timer > 0) {
+        timerElement.textContent = `Cerrando en ${timer} segundos...`;
+      } else {
+        clearInterval(countdown);
+        this.hideDialog();
+      }
+    }, 1000);
   }
 
   initMinigame() {
@@ -419,7 +438,7 @@ class FusionWorld {
     if (userAnswer === this.currentSnake.type) {
       this.minigameFeedbackEl.textContent = '¡Correcto! Has clasificado correctamente la serpiente.';
       markMinigameAsCompleted('learning-types');
-      setTimeout(() => this.hideDialog(), 2000);
+      this.startMinigameTimer(this.minigameTimerEl, 5);
     } else {
       this.minigameFeedbackEl.textContent = 'Incorrecto. Revisa la tabla de características y vuelve a intentarlo.';
     }
@@ -477,7 +496,7 @@ class FusionWorld {
     if (case1 || case2) {
         this.minigameUnsupervisedFeedbackEl.textContent = '¡Correcto! Has descubierto el patrón (tamaño) y clasificado los perros correctamente.';
         markMinigameAsCompleted('unsupervised-learning');
-        setTimeout(() => this.hideDialog(), 3000);
+        this.startMinigameTimer(this.minigameUnsupervisedTimerEl, 5);
     } else {
         this.minigameUnsupervisedFeedbackEl.textContent = 'Incorrecto. Intenta agruparlos de otra manera.';
     }
@@ -561,7 +580,7 @@ class FusionWorld {
       if (this.goalsReached >= this.maxGoals) {
         this.rlFeedbackEl.textContent = '¡Minijuego completado! El agente ha aprendido a llegar al objetivo.';
         markMinigameAsCompleted('reinforced-learning');
-        setTimeout(() => this.hideDialog(), 3000);
+        this.startMinigameTimer(this.rlTimerEl, 5);
       } else {
         this.agentPos = { x: 0, y: 0 }; // Reset agent for next goal
       }
@@ -744,7 +763,7 @@ class FusionWorld {
     feedbackMessage += ` El sesgo de anclaje demuestra cómo un número inicial puede influir en nuestras decisiones, incluso si es irrelevante.`;
     this.biasFeedbackEl.textContent = feedbackMessage;
     markMinigameAsCompleted('cognitive-bias');
-    setTimeout(() => this.hideDialog(), 10000); // Give time to read feedback
+    this.startMinigameTimer(this.biasTimerEl, 10); // Start 10-second timer
   }
 
   draw() {
