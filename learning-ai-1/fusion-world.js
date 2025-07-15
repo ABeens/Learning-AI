@@ -1,4 +1,5 @@
 import { collisionMapData } from './collision_map_data.js';
+import { markMinigameAsCompleted } from './init.js';
 
 class FusionWorld {
   constructor() {
@@ -24,6 +25,12 @@ class FusionWorld {
     this.minigameFeedbackEl = document.getElementById('minigame-feedback');
     this.minigameModalUnsupervised = document.getElementById('minigame-modal-unsupervised');
     this.minigameUnsupervisedFeedbackEl = document.getElementById('minigame-unsupervised-feedback');
+    this.minigameModalReinforced = document.getElementById('minigame-modal-reinforced');
+    this.rlFeedbackEl = document.getElementById('rl-feedback');
+    this.rlNextStepBtn = document.getElementById('rl-next-step');
+    this.rlRewardBtn = document.getElementById('rl-reward');
+    this.rlPunishBtn = document.getElementById('rl-punish');
+    this.rlGoalsReachedEl = document.getElementById('rl-goals-reached');
 
 
     // Game settings
@@ -90,6 +97,9 @@ class FusionWorld {
     this.minigameSubmitBtn.addEventListener('click', () => this.checkMinigame());
     this.minigameUnsupervisedSubmitBtn = document.getElementById('minigame-unsupervised-submit');
     this.minigameUnsupervisedSubmitBtn.addEventListener('click', () => this.checkUnsupervisedMinigame());
+    this.rlNextStepBtn.addEventListener('click', () => this.takeNextStep());
+    this.rlRewardBtn.addEventListener('click', () => this.applyReward());
+    this.rlPunishBtn.addEventListener('click', () => this.applyPunishment());
     this.createInteractiveObjects();
     this.initMinigame();
     this.initUnsupervisedMinigame();
@@ -139,6 +149,7 @@ class FusionWorld {
   createInteractiveObjects() {
     this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
     this.interactiveObjects.push({ x: 300, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
+    this.interactiveObjects.push({ x: 500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
     this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
   }
 
@@ -281,6 +292,7 @@ class FusionWorld {
     this.modal.style.display = 'none';
     this.minigameModal.style.display = 'none';
     this.minigameModalUnsupervised.style.display = 'none';
+    this.minigameModalReinforced.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -288,6 +300,7 @@ class FusionWorld {
     const userAnswer = this.answerEl.value.toLowerCase().trim();
     if (userAnswer === this.currentCorrectAnswer) {
       this.feedbackEl.textContent = '¡Correcto!';
+      markMinigameAsCompleted('secret-question');
       setTimeout(() => this.hideDialog(), 1000);
     } else {
       this.feedbackEl.textContent = 'Respuesta incorrecta. Intenta de nuevo.';
@@ -310,6 +323,9 @@ class FusionWorld {
     } else if (minigame === 'unsupervised-learning') {
       this.minigameModalUnsupervised.style.display = 'block';
       this.minigameUnsupervisedFeedbackEl.textContent = '';
+    } else if (minigame === 'reinforced-learning') {
+      this.minigameModalReinforced.style.display = 'block';
+      this.initReinforcedLearningMinigame();
     }
   }
 
@@ -321,6 +337,7 @@ class FusionWorld {
     const userAnswer = document.getElementById('snake-answer').value.toLowerCase().trim();
     if (userAnswer === this.currentSnake.type) {
       this.minigameFeedbackEl.textContent = '¡Correcto! Has clasificado correctamente la serpiente.';
+      markMinigameAsCompleted('learning-types');
       setTimeout(() => this.hideDialog(), 2000);
     } else {
       this.minigameFeedbackEl.textContent = 'Incorrecto. Revisa la tabla de características y vuelve a intentarlo.';
@@ -378,10 +395,221 @@ class FusionWorld {
 
     if (case1 || case2) {
         this.minigameUnsupervisedFeedbackEl.textContent = '¡Correcto! Has descubierto el patrón (tamaño) y clasificado los perros correctamente.';
+        markMinigameAsCompleted('unsupervised-learning');
         setTimeout(() => this.hideDialog(), 3000);
     } else {
         this.minigameUnsupervisedFeedbackEl.textContent = 'Incorrecto. Intenta agruparlos de otra manera.';
     }
+  }
+
+  // Reinforced Learning Minigame Logic (User-Driven)
+  initReinforcedLearningMinigame() {
+    this.rlCanvas = document.getElementById('reinforced-learning-canvas');
+    this.rlCtx = this.rlCanvas.getContext('2d');
+    this.rlGoalsReachedEl.textContent = '0';
+
+    this.gridSize = 10;
+    this.cellSize = this.rlCanvas.width / this.gridSize;
+    this.agentPos = { x: 0, y: 0 };
+    this.goalPos = { x: this.gridSize - 1, y: this.gridSize - 1 };
+    this.obstacles = [
+      { x: 2, y: 2 }, { x: 3, y: 2 }, { x: 4, y: 2 },
+      { x: 2, y: 3 }, { x: 2, y: 4 },
+      { x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 },
+      { x: 7, y: 6 }, { x: 7, y: 5 },
+    ];
+    this.qTable = {}; // Q-learning table: state -> action -> Q-value
+    this.learningRate = 0.1;
+    this.discountFactor = 0.9;
+    this.epsilon = 0.1; // Exploration rate
+    this.goalsReached = 0;
+    this.maxGoals = 3; // Number of times agent needs to reach goal to complete minigame
+    this.lastAction = null;
+    this.lastState = null;
+    this.rlFeedbackEl.textContent = 'Ayuda al agente a llegar al objetivo (verde) recompensándolo.';
+    this.drawReinforcedLearningGrid();
+  }
+
+  drawReinforcedLearningGrid() {
+    this.rlCtx.clearRect(0, 0, this.rlCanvas.width, this.rlCanvas.height);
+
+    for (let y = 0; y < this.gridSize; y++) {
+      for (let x = 0; x < this.gridSize; x++) {
+        this.rlCtx.strokeStyle = '#444';
+        this.rlCtx.strokeRect(x * this.cellSize, y * this.cellSize, this.cellSize, this.cellSize);
+      }
+    }
+
+    // Draw obstacles
+    this.rlCtx.fillStyle = 'red';
+    this.obstacles.forEach(obs => {
+      this.rlCtx.fillRect(obs.x * this.cellSize, obs.y * this.cellSize, this.cellSize, this.cellSize);
+    });
+
+    // Draw goal
+    this.rlCtx.fillStyle = 'green';
+    this.rlCtx.fillRect(this.goalPos.x * this.cellSize, this.goalPos.y * this.cellSize, this.cellSize, this.cellSize);
+
+    // Draw agent
+    this.rlCtx.fillStyle = 'blue';
+    this.rlCtx.beginPath();
+    this.rlCtx.arc(
+      this.agentPos.x * this.cellSize + this.cellSize / 2,
+      this.agentPos.y * this.cellSize + this.cellSize / 2,
+      this.cellSize / 3,
+      0,
+      Math.PI * 2
+    );
+    this.rlCtx.fill();
+  }
+
+  takeNextStep() {
+    this.rlFeedbackEl.textContent = '';
+    const currentState = `${this.agentPos.x},${this.agentPos.y}`;
+    this.lastState = currentState;
+    const action = this.chooseAction(currentState);
+    this.lastAction = action;
+    const oldPos = { ...this.agentPos };
+    this.takeAction(action);
+    const newPos = { ...this.agentPos };
+
+    this.drawReinforcedLearningGrid();
+
+    if (this.isGoal(newPos)) {
+      this.goalsReached++;
+      this.rlGoalsReachedEl.textContent = this.goalsReached;
+      this.rlFeedbackEl.textContent = '¡Agente en el objetivo! Recompénsalo para reforzar el camino.';
+      if (this.goalsReached >= this.maxGoals) {
+        this.rlFeedbackEl.textContent = '¡Minijuego completado! El agente ha aprendido a llegar al objetivo.';
+        markMinigameAsCompleted('reinforced-learning');
+        setTimeout(() => this.hideDialog(), 3000);
+      }
+      this.agentPos = { x: 0, y: 0 }; // Reset agent for next goal
+      this.drawReinforcedLearningGrid();
+    } else if (this.obstacles.some(obs => obs.x === newPos.x && obs.y === newPos.y)) {
+      this.rlFeedbackEl.textContent = '¡Agente chocó con un obstáculo! Castígalo para que aprenda a evitarlo.';
+    } else if (newPos.x === oldPos.x && newPos.y === oldPos.y) {
+      this.rlFeedbackEl.textContent = 'El agente no se movió. Castígalo si fue una mala decisión.';
+    } else {
+      this.rlFeedbackEl.textContent = 'El agente se movió. Recompénsalo si fue un buen paso, castígalo si no.';
+    }
+  }
+
+  applyReward() {
+    if (this.lastState && this.lastAction) {
+      const reward = 10; // Positive reward
+      const newState = `${this.agentPos.x},${this.agentPos.y}`;
+      this.updateQTable(this.lastState, this.lastAction, reward, newState);
+      this.rlFeedbackEl.textContent = 'Recompensa aplicada. ¡Bien hecho!';
+      this.lastState = null;
+      this.lastAction = null;
+    } else {
+      this.rlFeedbackEl.textContent = 'Toma un paso primero.';
+    }
+  }
+
+  applyPunishment() {
+    if (this.lastState && this.lastAction) {
+      const reward = -10; // Negative reward (punishment)
+      const newState = `${this.agentPos.x},${this.agentPos.y}`;
+      this.updateQTable(this.lastState, this.lastAction, reward, newState);
+      this.rlFeedbackEl.textContent = 'Castigo aplicado. El agente aprenderá.';
+      this.lastState = null;
+      this.lastAction = null;
+    } else {
+      this.rlFeedbackEl.textContent = 'Toma un paso primero.';
+    }
+  }
+
+  chooseAction(state) {
+    const actions = ['up', 'down', 'left', 'right'];
+    if (Math.random() < this.epsilon) {
+      // Explore: choose a random action
+      return actions[Math.floor(Math.random() * actions.length)];
+    } else {
+      // Exploit: choose the best action based on Q-values
+      let bestAction = null;
+      let maxQ = -Infinity;
+
+      actions.forEach(action => {
+        const qValue = (this.qTable[state] && this.qTable[state][action]) ? this.qTable[state][action] : 0;
+        if (qValue > maxQ) {
+          maxQ = qValue;
+          bestAction = action;
+        }
+      });
+      return bestAction || actions[Math.floor(Math.random() * actions.length)]; // Fallback
+    }
+  }
+
+  takeAction(action) {
+    let newX = this.agentPos.x;
+    let newY = this.agentPos.y;
+
+    switch (action) {
+      case 'up': newY--; break;
+      case 'down': newY++; break;
+      case 'left': newX--; break;
+      case 'right': newX++; break;
+    }
+
+    // Check boundaries
+    newX = Math.max(0, Math.min(this.gridSize - 1, newX));
+    newY = Math.max(0, Math.min(this.gridSize - 1, newY));
+
+    // Check for obstacles
+    const isObstacle = this.obstacles.some(obs => obs.x === newX && obs.y === newY);
+    if (!isObstacle) {
+      this.agentPos.x = newX;
+      this.agentPos.y = newY;
+    }
+  }
+
+  // getReward is now handled by user input, so this is simplified
+  getReward(newPos, oldPos) {
+    // This function is no longer directly used for Q-table updates in this user-driven version.
+    // Rewards are provided by the user via applyReward/applyPunishment.
+    // However, we can still use it for internal logic if needed, e.g., for immediate feedback.
+    if (this.isGoal(newPos)) {
+      return 1; // Agent reached goal
+    }
+    if (this.obstacles.some(obs => obs.x === newPos.x && obs.y === newPos.y)) {
+      return -1; // Agent hit obstacle
+    }
+    if (newPos.x === oldPos.x && newPos.y === oldPos.y) {
+        return -0.5; // Agent didn't move
+    }
+    return 0; // Neutral for movement
+  }
+
+  isGoal(pos) {
+    return pos.x === this.goalPos.x && pos.y === this.goalPos.y;
+  }
+
+  updateQTable(currentState, action, reward, newState) {
+    if (!this.qTable[currentState]) {
+      this.qTable[currentState] = {};
+    }
+    if (!this.qTable[currentState][action]) {
+      this.qTable[currentState][action] = 0;
+    }
+
+    const oldQ = this.qTable[currentState][action];
+    const maxFutureQ = this.getMaxQ(newState);
+    
+    // Q-learning formula
+    this.qTable[currentState][action] = oldQ + this.learningRate * (reward + this.discountFactor * maxFutureQ - oldQ);
+  }
+
+  getMaxQ(state) {
+    const actions = ['up', 'down', 'left', 'right'];
+    let maxQ = 0;
+    if (this.qTable[state]) {
+      actions.forEach(action => {
+        maxQ = Math.max(maxQ, this.qTable[state][action] || 0);
+      });
+    }
+    return maxQ;
   }
 
   draw() {

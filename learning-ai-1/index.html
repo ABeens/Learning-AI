@@ -12,6 +12,10 @@
     <canvas id="game-canvas"></canvas>
   </div>
 
+  <div id="minigame-counter" style="position: absolute; top: 10px; left: 10px; color: white; font-size: 1.2em; background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;">
+    Minijuegos Completados: 0/6
+  </div>
+
   <div id="intro-modal" class="modal" style="display: block;">
     <div class="modal-content">
       <div class="modal-header">
@@ -109,6 +113,25 @@
         </div>
         <button id="minigame-unsupervised-submit" class="minigame-submit-button">Verificar</button>
         <p id="minigame-unsupervised-feedback"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-reinforced" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-reinforced">Juego de Aprendizaje por Refuerzo</h2>
+      </div>
+      <div id="minigame-content-reinforced">
+        <p>En este juego, un agente aprenderá a navegar un laberinto para llegar a un objetivo, evitando obstáculos. Observa cómo mejora su estrategia a través de la prueba y error, recibiendo recompensas y penalizaciones.</p>
+        <canvas id="reinforced-learning-canvas" width="300" height="300" style="border: 2px solid #555; background-color: #2a2a2a;"></canvas>
+        <div style="margin-top: 10px;">
+          <button id="rl-next-step" class="minigame-submit-button">Siguiente Paso</button>
+          <button id="rl-reward" class="minigame-submit-button" style="background-color: #28a745;">Recompensa (+)</button>
+          <button id="rl-punish" class="minigame-submit-button" style="background-color: #dc3545;">Castigo (-)</button>
+        </div>
+        <p id="rl-feedback"></p>
+        <p>Objetivos Completados: <span id="rl-goals-reached">0</span></p>
       </div>
     </div>
   </div>

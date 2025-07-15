@@ -68,7 +68,7 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
