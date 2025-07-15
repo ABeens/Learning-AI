@@ -13,7 +13,7 @@
   </div>
 
   <div id="minigame-counter" style="position: absolute; top: 10px; left: 10px; color: white; font-size: 1.2em; background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;">
-    Minijuegos Completados: 0/6
+    Minijuegos Completados: 0/5
   </div>
 
   <div id="intro-modal" class="modal" style="display: block;">
@@ -21,7 +21,7 @@
       <div class="modal-header">
         <h2 id="intro-title">Bienvenido a las oficinas de Fusion HIT</h2>
       </div>
-      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío (son 6 en total).</p>
+      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío, debes descubrir cuales son (son 5 en total).</p>
       <button id="start-game">Comenzar</button>
     </div>
   </div>
@@ -41,7 +41,7 @@
   <div id="minigame-modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="minigame-title">Supervisado: Aprende con Ejemplos</h2>
+        <h2 id="minigame-title">Aprendizaje Supervisado</h2>
       </div>
       <div id="minigame-content">
         <p>El aprendizaje supervisado es un tipo de inteligencia artificial en el que un modelo aprende a partir de datos que ya han sido etiquetados (tienen sus entredas y salidas claras). En este juego, tú harías el papel de la IA, tendrías los datos etiquetados y en base a eso inferirás los resultados.</p>
@@ -88,7 +88,7 @@
   <div id="minigame-modal-unsupervised" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="minigame-title-unsupervised">Juego de Aprendizaje No Supervisado</h2>
+        <h2 id="minigame-title-unsupervised">Aprendizaje No Supervisado</h2>
       </div>
       <div id="minigame-content-unsupervised">
         <p>El aprendizaje no supervisado es un tipo de IA donde el modelo busca patrones en datos que no han sido etiquetados. A diferencia del aprendizaje supervisado, no se le dice al modelo cuál es la "respuesta correcta". En este juego, tu tarea es encontrar el patrón y clasificar los elementos en grupos.</p>
@@ -120,7 +120,7 @@
   <div id="minigame-modal-reinforced" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="minigame-title-reinforced">Juego de Aprendizaje por Refuerzo</h2>
+        <h2 id="minigame-title-reinforced">Aprendizaje por Refuerzo</h2>
       </div>
       <div id="minigame-content-reinforced">
         <p>El aprendizaje por refuerzo es un tipo de IA donde un agente aprende a tomar decisiones interactuando con un entorno, recibiendo recompensas o castigos. Ayuda al robot a encontrar el camino.</p>
@@ -150,6 +150,40 @@
         <input type="number" id="bias-estimate" placeholder="Introduce tu número aquí..." class="minigame-input">
         <button id="bias-submit" class="minigame-submit-button">Estimar</button>
         <p id="bias-feedback"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-data-bias" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-data-bias">Importancia de los datos en la IA</h2>
+      </div>
+      <div id="minigame-content-data-bias">
+        <p>El primer paso y más importante para entrenar una IA es seleccionar los datos correctos. La calidad y relevancia de tus datos determinarán el éxito de tu modelo.</p>
+        <p>Imagina que estás construyendo un modelo de IA para predecir el precio de una casa. Arrastra los conjuntos de datos más RELEVANTES a la caja de 'Datos Relevantes' y los menos relevantes a la caja de 'Datos Irrelevantes'.</p>
+        <div id="data-relevance-columns">
+          <div class="data-relevance-column">
+            <h3>Datos Relevantes</h3>
+            <div class="data-relevance-dropzone" data-group="relevant"></div>
+          </div>
+          <div class="data-relevance-column">
+            <h3>Datos Irrelevantes</h3>
+            <div class="data-relevance-dropzone" data-group="irrelevant"></div>
+          </div>
+        </div>
+        <div id="data-relevance-options">
+          <div id="data-1" class="data-relevance-option" draggable="true" data-type="relevant">Tamaño de la casa (m² o ft²)</div>
+          <div id="data-2" class="data-relevance-option" draggable="true" data-type="irrelevant">Color de la puerta principal</div>
+          <div id="data-3" class="data-relevance-option" draggable="true" data-type="relevant">Número de habitaciones</div>
+          <div id="data-4" class="data-relevance-option" draggable="true" data-type="irrelevant">Marca del coche del vecino</div>
+          <div id="data-5" class="data-relevance-option" draggable="true" data-type="relevant">Ubicación (código postal, barrio)</div>
+          <div id="data-6" class="data-relevance-option" draggable="true" data-type="irrelevant">Clima del día de la venta</div>
+          <div id="data-7" class="data-relevance-option" draggable="true" data-type="relevant">Antigüedad de la casa (años)</div>
+          <div id="data-8" class="data-relevance-option" draggable="true" data-type="irrelevant">Nombre del propietario anterior</div>
+        </div>
+        <button id="data-relevance-submit" class="minigame-submit-button">Verificar</button>
+        <p id="data-relevance-feedback"></p>
       </div>
     </div>
   </div>

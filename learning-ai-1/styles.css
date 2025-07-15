@@ -67,7 +67,7 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
@@ -178,6 +178,43 @@ body {
   background-color: #5a5a5a;
 }
 
+/* Data Relevance Minigame Styles */
+#data-relevance-columns {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px;
+}
+
+.data-relevance-column {
+  width: 40%;
+}
+
+.data-relevance-dropzone {
+  border: 2px dashed #555;
+  border-radius: 5px;
+  padding: 10px;
+  min-height: 150px;
+}
+
+#data-relevance-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 20px;
+}
+
+.data-relevance-option {
+  background-color: #4a4a4a;
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: grab;
+  transition: background-color 0.3s;
+}
+
+.data-relevance-option:hover {
+  background-color: #5a5a5a;
+}
 
 /* Fade-in Animation */
 @keyframes fadeIn {

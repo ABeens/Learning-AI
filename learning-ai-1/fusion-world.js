@@ -29,10 +29,16 @@ class FusionWorld {
     this.rlFeedbackEl = document.getElementById('rl-feedback');
     this.minigameModalBias = document.getElementById('minigame-modal-bias');
     this.biasFeedbackEl = document.getElementById('bias-feedback');
+    this.minigameModalDataBias = document.getElementById('minigame-modal-data-bias');
+    this.dataRelevanceSubmitBtn = document.getElementById('data-relevance-submit');
+    this.dataRelevanceFeedbackEl = document.getElementById('data-relevance-feedback');
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
     this.rlPunishBtn = document.getElementById('rl-punish');
     this.rlGoalsReachedEl = document.getElementById('rl-goals-reached');
+    this.minigameAudio = new Audio('fusion-hit.mp3');
+    this.minigameAudio.loop = true;
+    this.minigameAudio.volume = 0.1; // Set volume to 20%
 
 
     // Game settings
@@ -102,6 +108,7 @@ class FusionWorld {
     this.rlNextStepBtn.addEventListener('click', () => this.takeNextStep());
     this.rlRewardBtn.addEventListener('click', () => this.applyReward());
     this.rlPunishBtn.addEventListener('click', () => this.applyPunishment());
+    this.dataRelevanceSubmitBtn.addEventListener('click', () => this.checkDataRelevanceMinigame());
     this.createInteractiveObjects();
     this.initMinigame();
     this.initUnsupervisedMinigame();
@@ -111,6 +118,9 @@ class FusionWorld {
   startGame() {
     this.introModal.style.display = 'none';
     this.gameStarted = true;
+    if (this.minigameAudio) {
+      this.minigameAudio.play();
+    }
   }
 
   async loadAssets() {
@@ -149,11 +159,11 @@ class FusionWorld {
   }
 
   createInteractiveObjects() {
-    this.interactiveObjects.push({ x: 100, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
-    this.interactiveObjects.push({ x: 300, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
-    this.interactiveObjects.push({ x: 500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
-    this.interactiveObjects.push({ x: 600, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
-    this.interactiveObjects.push({ x: 400, y: 500, width: 48, height: 48, question: 'Escribe la palabra "secreto" para continuar', answer: 'secreto' });
+    this.interactiveObjects.push({ x: 280, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
+    this.interactiveObjects.push({ x: 750, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
+    this.interactiveObjects.push({ x: 520, y: 620, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
+    this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
+    this.interactiveObjects.push({ x: 100, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'data-relevance' });
   }
 
   handleKeys(e, isDown) {
@@ -297,6 +307,7 @@ class FusionWorld {
     this.minigameModalUnsupervised.style.display = 'none';
     this.minigameModalReinforced.style.display = 'none';
     this.minigameModalBias.style.display = 'none';
+    this.minigameModalDataBias.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -333,6 +344,69 @@ class FusionWorld {
     } else if (minigame === 'cognitive-bias') {
       this.minigameModalBias.style.display = 'block';
       this.initBiasMinigame();
+    } else if (minigame === 'data-relevance') {
+      this.minigameModalDataBias.style.display = 'block';
+      this.initDataRelevanceMinigame();
+    }
+  }
+
+  initDataRelevanceMinigame() {
+    const options = document.querySelectorAll('.data-relevance-option');
+    const dropzones = document.querySelectorAll('.data-relevance-dropzone');
+    let draggedOption = null;
+
+    // Reset options to their original container
+    const optionsContainer = document.getElementById('data-relevance-options');
+    options.forEach(option => {
+      optionsContainer.appendChild(option);
+    });
+
+    options.forEach(option => {
+      option.addEventListener('dragstart', e => {
+        draggedOption = e.target;
+        e.dataTransfer.setData('text/plain', e.target.id);
+      });
+    });
+
+    dropzones.forEach(dropzone => {
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        if (draggedOption) {
+          if (e.target.classList.contains('data-relevance-dropzone')) {
+            e.target.appendChild(draggedOption);
+          } else {
+            e.target.parentElement.appendChild(draggedOption);
+          }
+          draggedOption = null;
+        }
+      });
+    });
+    this.dataRelevanceFeedbackEl.textContent = '';
+  }
+
+  checkDataRelevanceMinigame() {
+    const relevantDropzone = document.querySelector('.data-relevance-dropzone[data-group="relevant"]');
+    const irrelevantDropzone = document.querySelector('.data-relevance-dropzone[data-group="irrelevant"]');
+    const optionsContainer = document.getElementById('data-relevance-options');
+
+    if (optionsContainer.children.length > 0) {
+        this.dataRelevanceFeedbackEl.textContent = 'Debes clasificar todos los datos.';
+        return;
+    }
+
+    const relevantCorrect = relevantDropzone.querySelectorAll('.data-relevance-option[data-type="relevant"]').length === 4;
+    const irrelevantCorrect = irrelevantDropzone.querySelectorAll('.data-relevance-option[data-type="irrelevant"]').length === 4;
+
+    if (relevantCorrect && irrelevantCorrect) {
+        this.dataRelevanceFeedbackEl.textContent = '¡Correcto! Has clasificado los datos correctamente. Usando estas variables tu modelo va a recibir un entrenamiento más objetivo.';
+        markMinigameAsCompleted('data-relevance');
+        setTimeout(() => this.hideDialog(), 5000);
+    } else {
+        this.dataRelevanceFeedbackEl.textContent = 'Incorrecto. Revisa tu clasificación.';
     }
   }
 
