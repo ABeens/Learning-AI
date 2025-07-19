@@ -436,24 +436,35 @@ class FusionWorld {
       });
     });
 
-    document.getElementById('ml-dl-minigame-feedback').textContent = '';
+    document.getElementById('ml-dl-feedback').textContent = '';
   }
 
   checkMlDlMinigame() {
-    const mlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="ml"]');
-    const dlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="dl"]');
+    const group1Dropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="group1"]');
+    console.log('group1Dropzone:', group1Dropzone);
+    const group2Dropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="group2"]');
+    console.log('group2Dropzone:', group2Dropzone);
+    console.log('group2Dropzone:', group2Dropzone);
     const optionsContainer = document.getElementById('ml-dl-minigame-options');
 
     if (optionsContainer.children.length > 0) {
-        document.getElementById('ml-dl-feedback').textContent = 'Debes clasificar todas las características.';
+        document.getElementById('ml-dl-feedback').textContent = 'Debes clasificar todas las características antes de verificar.';
         return;
     }
 
-    const mlCorrect = mlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="ml"]').length === 3;
-    const dlCorrect = dlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="dl"]').length === 3;
+    const group1Type1 = group1Dropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type1"]').length;
+    const group1Type2 = group1Dropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type2"]').length;
+    const group2Type1 = group2Dropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type1"]').length;
+    const group2Type2 = group2Dropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type2"]').length;
 
-    if (mlCorrect && dlCorrect) {
-        document.getElementById('ml-dl-feedback').textContent = '¡Correcto! Has clasificado las características correctamente.';
+    // Assuming 3 of type1 and 3 of type2, and they should be separated into two groups
+    // Case 1: group1 has all type1, group2 has all type2
+    const case1 = group1Type1 === 3 && group1Type2 === 0 && group2Type1 === 0 && group2Type2 === 3;
+    // Case 2: group1 has all type2, group2 has all type1
+    const case2 = group1Type1 === 0 && group1Type2 === 3 && group2Type1 === 3 && group2Type2 === 0;
+
+    if (case1 || case2) {
+        document.getElementById('ml-dl-feedback').textContent = '¡Correcto! Has diferenciado correctamente las características de Machine Learning y Deep Learning.';
         markMinigameAsCompleted('ml-vs-dl');
         this.startMinigameTimer(document.getElementById('ml-dl-timer'), 5);
     } else {
@@ -483,63 +494,32 @@ class FusionWorld {
     }
   }
 
-  initMlDlMinigame() {
-    const options = document.querySelectorAll('.ml-dl-minigame-option');
-    const dropzones = document.querySelectorAll('.ml-dl-minigame-dropzone');
-    let draggedOption = null;
-
-    // Reset options to their original container
-    const optionsContainer = document.getElementById('ml-dl-minigame-options');
-    options.forEach(option => {
-      optionsContainer.appendChild(option);
-    });
-
-    options.forEach(option => {
-      option.addEventListener('dragstart', e => {
-        draggedOption = e.target;
-        e.dataTransfer.setData('text/plain', e.target.id);
-      });
-    });
-
-    dropzones.forEach(dropzone => {
-      dropzone.addEventListener('dragover', e => {
-        e.preventDefault();
-      });
-
-      dropzone.addEventListener('drop', e => {
-        e.preventDefault();
-        if (draggedOption) {
-          if (e.target.classList.contains('ml-dl-minigame-dropzone')) {
-            e.target.appendChild(draggedOption);
-          } else {
-            e.target.parentElement.appendChild(draggedOption);
-          }
-          draggedOption = null;
-        }
-      });
-    });
-    document.getElementById('ml-dl-minigame-feedback').textContent = '';
-  }
+  
 
   checkMlDlMinigame() {
-    const mlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="ml"]');
-    const dlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="dl"]');
+    const mlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="group1"]');
+    const dlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="group2"]');
     const optionsContainer = document.getElementById('ml-dl-minigame-options');
 
+    if (!mlDropzone || !dlDropzone) {
+      console.error('Error: One or both minigame dropzones not found.');
+      return;
+    }
+
     if (optionsContainer.children.length > 0) {
-        document.getElementById('ml-dl-minigame-feedback').textContent = 'Debes clasificar todas las características.';
+        document.getElementById('ml-dl-feedback').textContent = 'Debes clasificar todas las características.';
         return;
     }
 
-    const mlCorrect = mlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="ml"]').length === 3;
-    const dlCorrect = dlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="dl"]').length === 3;
+    const mlCorrect = mlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type1"]').length === 3;
+    const dlCorrect = dlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="type2"]').length === 3;
 
     if (mlCorrect && dlCorrect) {
-        document.getElementById('ml-dl-minigame-feedback').textContent = '¡Correcto! Has diferenciado correctamente las características de Machine Learning y Deep Learning.';
+        document.getElementById('ml-dl-feedback').textContent = '¡Correcto! Has diferenciado correctamente las características de Machine Learning y Deep Learning.';
         markMinigameAsCompleted('ml-vs-dl');
-        this.startMinigameTimer(document.getElementById('ml-dl-minigame-timer'), 5);
+        this.startMinigameTimer(document.getElementById('ml-dl-timer'), 5);
     } else {
-        document.getElementById('ml-dl-minigame-feedback').textContent = 'Incorrecto. Revisa tu clasificación.';
+        document.getElementById('ml-dl-feedback').textContent = 'Incorrecto. Revisa tu clasificación.';
     }
   }
 
