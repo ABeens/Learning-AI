@@ -334,6 +334,13 @@ class FusionWorld {
 
   showMinigame(minigame) {
     this.interactingWith = this.targetObject;
+    // Clear all minigame timers when a new minigame is shown
+    if (document.getElementById('ml-dl-timer')) document.getElementById('ml-dl-timer').textContent = '';
+    if (this.dataRelevanceTimerEl) this.dataRelevanceTimerEl.textContent = '';
+    if (this.minigameTimerEl) this.minigameTimerEl.textContent = '';
+    if (this.minigameUnsupervisedTimerEl) this.minigameUnsupervisedTimerEl.textContent = '';
+    if (this.rlTimerEl) this.rlTimerEl.textContent = '';
+    if (this.biasTimerEl) this.biasTimerEl.textContent = '';
     if (minigame === 'learning-types') {
       this.minigameModal.style.display = 'block';
       this.snakes = [
