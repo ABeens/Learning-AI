@@ -1,5 +1,5 @@
 let completedMinigames = new Set();
-const totalMinigames = 5; // Assuming there are 6 minigames in total
+const totalMinigames = 6; // Assuming there are 6 minigames in total
 
 function loadMinigameProgress() {
     const savedProgress = localStorage.getItem('completedMinigames');

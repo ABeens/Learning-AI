@@ -37,6 +37,8 @@ class FusionWorld {
     this.dataRelevanceSubmitBtn = document.getElementById('data-relevance-submit');
     this.dataRelevanceFeedbackEl = document.getElementById('data-relevance-feedback');
     this.dataRelevanceTimerEl = document.getElementById('data-relevance-timer');
+    this.minigameModalMlDl = document.getElementById('minigame-modal-ml-dl');
+    console.log('minigameModalMlDl:', this.minigameModalMlDl);
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
     this.rlPunishBtn = document.getElementById('rl-punish');
@@ -114,6 +116,7 @@ class FusionWorld {
     this.rlRewardBtn.addEventListener('click', () => this.applyReward());
     this.rlPunishBtn.addEventListener('click', () => this.applyPunishment());
     this.dataRelevanceSubmitBtn.addEventListener('click', () => this.checkDataRelevanceMinigame());
+    document.getElementById('ml-dl-submit').addEventListener('click', () => this.checkMlDlMinigame());
     this.createInteractiveObjects();
     this.initMinigame();
     this.initUnsupervisedMinigame();
@@ -169,6 +172,7 @@ class FusionWorld {
     this.interactiveObjects.push({ x: 520, y: 620, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
     this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
     this.interactiveObjects.push({ x: 100, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'data-relevance' });
+    this.interactiveObjects.push({ x: 1500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'ml-vs-dl' });
   }
 
   handleKeys(e, isDown) {
@@ -313,6 +317,7 @@ class FusionWorld {
     this.minigameModalReinforced.style.display = 'none';
     this.minigameModalBias.style.display = 'none';
     this.minigameModalDataBias.style.display = 'none';
+    this.minigameModalMlDl.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -352,6 +357,9 @@ class FusionWorld {
     } else if (minigame === 'data-relevance') {
       this.minigameModalDataBias.style.display = 'block';
       this.initDataRelevanceMinigame();
+    } else if (minigame === 'ml-vs-dl') {
+      this.minigameModalMlDl.style.display = 'block';
+      this.initMlDlMinigame();
     }
   }
 
@@ -393,6 +401,66 @@ class FusionWorld {
     this.dataRelevanceFeedbackEl.textContent = '';
   }
 
+  initMlDlMinigame() {
+    const options = document.querySelectorAll('.ml-dl-minigame-option');
+    const dropzones = document.querySelectorAll('.ml-dl-minigame-dropzone');
+    let draggedOption = null;
+
+    const optionsContainer = document.getElementById('ml-dl-minigame-options');
+    options.forEach(option => {
+      optionsContainer.appendChild(option);
+    });
+
+    options.forEach(option => {
+      option.addEventListener('dragstart', e => {
+        draggedOption = e.target;
+        e.dataTransfer.setData('text/plain', e.target.id);
+      });
+    });
+
+    dropzones.forEach(dropzone => {
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        if (draggedOption) {
+          if (e.target.classList.contains('ml-dl-minigame-dropzone')) {
+            e.target.appendChild(draggedOption);
+          } else {
+            e.target.parentElement.appendChild(draggedOption);
+          }
+          draggedOption = null;
+        }
+      });
+    });
+
+    document.getElementById('ml-dl-minigame-feedback').textContent = '';
+  }
+
+  checkMlDlMinigame() {
+    const mlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="ml"]');
+    const dlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="dl"]');
+    const optionsContainer = document.getElementById('ml-dl-minigame-options');
+
+    if (optionsContainer.children.length > 0) {
+        document.getElementById('ml-dl-feedback').textContent = 'Debes clasificar todas las características.';
+        return;
+    }
+
+    const mlCorrect = mlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="ml"]').length === 3;
+    const dlCorrect = dlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="dl"]').length === 3;
+
+    if (mlCorrect && dlCorrect) {
+        document.getElementById('ml-dl-feedback').textContent = '¡Correcto! Has clasificado las características correctamente.';
+        markMinigameAsCompleted('ml-vs-dl');
+        this.startMinigameTimer(document.getElementById('ml-dl-timer'), 5);
+    } else {
+        document.getElementById('ml-dl-feedback').textContent = 'Incorrecto. Revisa tu clasificación.';
+    }
+  }
+
   checkDataRelevanceMinigame() {
     const relevantDropzone = document.querySelector('.data-relevance-dropzone[data-group="relevant"]');
     const irrelevantDropzone = document.querySelector('.data-relevance-dropzone[data-group="irrelevant"]');
@@ -412,6 +480,66 @@ class FusionWorld {
         this.startMinigameTimer(this.dataRelevanceTimerEl, 5); // Start 5-second timer
     } else {
         this.dataRelevanceFeedbackEl.textContent = 'Incorrecto. Revisa tu clasificación.';
+    }
+  }
+
+  initMlDlMinigame() {
+    const options = document.querySelectorAll('.ml-dl-minigame-option');
+    const dropzones = document.querySelectorAll('.ml-dl-minigame-dropzone');
+    let draggedOption = null;
+
+    // Reset options to their original container
+    const optionsContainer = document.getElementById('ml-dl-minigame-options');
+    options.forEach(option => {
+      optionsContainer.appendChild(option);
+    });
+
+    options.forEach(option => {
+      option.addEventListener('dragstart', e => {
+        draggedOption = e.target;
+        e.dataTransfer.setData('text/plain', e.target.id);
+      });
+    });
+
+    dropzones.forEach(dropzone => {
+      dropzone.addEventListener('dragover', e => {
+        e.preventDefault();
+      });
+
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        if (draggedOption) {
+          if (e.target.classList.contains('ml-dl-minigame-dropzone')) {
+            e.target.appendChild(draggedOption);
+          } else {
+            e.target.parentElement.appendChild(draggedOption);
+          }
+          draggedOption = null;
+        }
+      });
+    });
+    document.getElementById('ml-dl-minigame-feedback').textContent = '';
+  }
+
+  checkMlDlMinigame() {
+    const mlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="ml"]');
+    const dlDropzone = document.querySelector('.ml-dl-minigame-dropzone[data-group="dl"]');
+    const optionsContainer = document.getElementById('ml-dl-minigame-options');
+
+    if (optionsContainer.children.length > 0) {
+        document.getElementById('ml-dl-minigame-feedback').textContent = 'Debes clasificar todas las características.';
+        return;
+    }
+
+    const mlCorrect = mlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="ml"]').length === 3;
+    const dlCorrect = dlDropzone.querySelectorAll('.ml-dl-minigame-option[data-type="dl"]').length === 3;
+
+    if (mlCorrect && dlCorrect) {
+        document.getElementById('ml-dl-minigame-feedback').textContent = '¡Correcto! Has diferenciado correctamente las características de Machine Learning y Deep Learning.';
+        markMinigameAsCompleted('ml-vs-dl');
+        this.startMinigameTimer(document.getElementById('ml-dl-minigame-timer'), 5);
+    } else {
+        document.getElementById('ml-dl-minigame-feedback').textContent = 'Incorrecto. Revisa tu clasificación.';
     }
   }
 
@@ -787,17 +915,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    // this.interactiveObjects.forEach(obj => {
-    //   if (this.interactiveObjectSprite) {
-    //     this.ctx.drawImage(
-    //       this.interactiveObjectSprite,
-    //       obj.x - this.camera.x,
-    //       obj.y - this.camera.y,
-    //       obj.width,
-    //       obj.height
-    //     );
-    //   }
-    // });
+    this.interactiveObjects.forEach(obj => {
+      if (this.interactiveObjectSprite) {
+        this.ctx.drawImage(
+          this.interactiveObjectSprite,
+          obj.x - this.camera.x,
+          obj.y - this.camera.y,
+          obj.width,
+          obj.height
+        );
+      }
+    });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;
