@@ -38,6 +38,13 @@ class FusionWorld {
     this.dataRelevanceFeedbackEl = document.getElementById('data-relevance-feedback');
     this.dataRelevanceTimerEl = document.getElementById('data-relevance-timer');
     this.minigameModalMlDl = document.getElementById('minigame-modal-ml-dl');
+    this.minigameModalSentiment = document.getElementById('minigame-modal-sentiment');
+    this.sentimentTextEl = document.getElementById('sentiment-text');
+    this.sentimentPositiveBtn = document.getElementById('sentiment-positive');
+    this.sentimentNegativeBtn = document.getElementById('sentiment-negative');
+    this.sentimentNeutralBtn = document.getElementById('sentiment-neutral');
+    this.sentimentFeedbackEl = document.getElementById('sentiment-feedback');
+    this.sentimentTimerEl = document.getElementById('sentiment-timer');
     console.log('minigameModalMlDl:', this.minigameModalMlDl);
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
@@ -117,6 +124,9 @@ class FusionWorld {
     this.rlPunishBtn.addEventListener('click', () => this.applyPunishment());
     this.dataRelevanceSubmitBtn.addEventListener('click', () => this.checkDataRelevanceMinigame());
     document.getElementById('ml-dl-submit').addEventListener('click', () => this.checkMlDlMinigame());
+    this.sentimentPositiveBtn.addEventListener('click', () => this.checkSentimentMinigame('positivo'));
+    this.sentimentNegativeBtn.addEventListener('click', () => this.checkSentimentMinigame('negativo'));
+    this.sentimentNeutralBtn.addEventListener('click', () => this.checkSentimentMinigame('neutral'));
     this.createInteractiveObjects();
     this.initMinigame();
     this.initUnsupervisedMinigame();
@@ -173,6 +183,7 @@ class FusionWorld {
     this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
     this.interactiveObjects.push({ x: 100, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'data-relevance' });
     this.interactiveObjects.push({ x: 1500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'ml-vs-dl' });
+    this.interactiveObjects.push({ x: 1700, y: 300, width: 48, height: 48, type: 'minigame', minigame: 'sentiment-analysis' });
   }
 
   handleKeys(e, isDown) {
@@ -318,6 +329,7 @@ class FusionWorld {
     this.minigameModalBias.style.display = 'none';
     this.minigameModalDataBias.style.display = 'none';
     this.minigameModalMlDl.style.display = 'none';
+    this.minigameModalSentiment.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -341,6 +353,7 @@ class FusionWorld {
     if (this.minigameUnsupervisedTimerEl) this.minigameUnsupervisedTimerEl.textContent = '';
     if (this.rlTimerEl) this.rlTimerEl.textContent = '';
     if (this.biasTimerEl) this.biasTimerEl.textContent = '';
+    if (this.sentimentTimerEl) this.sentimentTimerEl.textContent = '';
     if (minigame === 'learning-types') {
       this.minigameModal.style.display = 'block';
       this.snakes = [
@@ -367,6 +380,9 @@ class FusionWorld {
     } else if (minigame === 'ml-vs-dl') {
       this.minigameModalMlDl.style.display = 'block';
       this.initMlDlMinigame();
+    } else if (minigame === 'sentiment-analysis') {
+      this.minigameModalSentiment.style.display = 'block';
+      this.initSentimentMinigame();
     }
   }
 
@@ -879,6 +895,45 @@ class FusionWorld {
     this.biasFeedbackEl.textContent = feedbackMessage;
     markMinigameAsCompleted('cognitive-bias');
     this.startMinigameTimer(this.biasTimerEl, 10); // Start 10-second timer
+  }
+
+  initSentimentMinigame() {
+    this.sentimentTexts = [
+      { text: "¡Este producto es increíble, lo recomiendo totalmente!", sentiment: "positivo", keywords: ["increíble", "recomiendo totalmente"] },
+      { text: "El servicio al cliente fue pésimo y la espera muy larga.", sentiment: "negativo", keywords: ["pésimo", "espera muy larga"] },
+      { text: "La reunión duró una hora y se discutieron varios puntos.", sentiment: "neutral", keywords: ["duró una hora", "discutieron varios puntos"] },
+      { text: "Me encanta cómo funciona esta nueva característica, es muy útil.", sentiment: "positivo", keywords: ["me encanta", "muy útil"] },
+      { text: "No estoy satisfecho con la calidad del material, se rompió rápido.", sentiment: "negativo", keywords: ["no estoy satisfecho", "se rompió rápido"] },
+      { text: "El informe presenta los datos de ventas del último trimestre.", sentiment: "neutral", keywords: ["presenta los datos", "último trimestre"] },
+      { text: "Qué día tan maravilloso, el sol brilla y los pájaros cantan.", sentiment: "positivo", keywords: ["maravilloso", "sol brilla", "pájaros cantan"] },
+      { text: "La película fue aburrida y predecible, una pérdida de tiempo.", sentiment: "negativo", keywords: ["aburrida", "predecible", "pérdida de tiempo"] },
+      { text: "El evento se llevará a cabo en el centro de convenciones.", sentiment: "neutral", keywords: ["se llevará a cabo", "centro de convenciones"] }
+    ];
+    this.currentSentimentText = this.sentimentTexts[Math.floor(Math.random() * this.sentimentTexts.length)];
+    this.sentimentTextEl.textContent = `"${this.currentSentimentText.text}"`;
+    this.sentimentFeedbackEl.textContent = '';
+    document.getElementById('sentiment-keywords').textContent = ''; // Clear previous keywords
+  }
+
+  checkSentimentMinigame(userSentiment) {
+    const correctSentiment = this.currentSentimentText.sentiment;
+    const keywords = this.currentSentimentText.keywords;
+    let feedbackMessage = '';
+
+    if (userSentiment === correctSentiment) {
+      feedbackMessage = `¡Correcto! El texto es efectivamente ${correctSentiment}.`;
+      feedbackMessage += ` Una IA, entrenada con ejemplos similares, aprende a identificar patrones. En este caso, las palabras clave como ${keywords.map(k => `"${k}"`).join(", ")} son fuertes indicadores de un sentimiento ${correctSentiment}.`;
+      feedbackMessage += ` Este proceso de reconocer palabras y frases asociadas a un sentimiento es fundamental en el PLN.`;
+      markMinigameAsCompleted('sentiment-analysis');
+      this.startMinigameTimer(this.sentimentTimerEl, 5);
+    } else {
+      feedbackMessage = `Incorrecto. El sentimiento correcto era ${correctSentiment}.`;
+      feedbackMessage += ` Una IA buscaría patrones y palabras clave como ${keywords.map(k => `"${k}"`).join(", ")}.`;
+      feedbackMessage += ` El desafío para la IA (y para ti) es aprender a distinguir estos patrones incluso con variaciones en el lenguaje.`;
+      feedbackMessage += ' Intenta de nuevo.';
+    }
+    this.sentimentFeedbackEl.textContent = feedbackMessage;
+    document.getElementById('sentiment-keywords').textContent = `Palabras clave identificadas por la IA: ${keywords.map(k => `"${k}"`).join(", ")}`;
   }
 
   draw() {

@@ -28,7 +28,7 @@
 
   <div id="minigame-counter"
     style="position: absolute; top: 10px; left: 10px; color: white; font-size: 1.2em; background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;">
-    Minijuegos Completados: 0/6
+    Minijuegos Completados: 0/7
   </div>
 
   <div id="intro-modal" class="modal" style="display: block;">
@@ -278,6 +278,34 @@
         <button id="ml-dl-submit" class="minigame-submit-button">Verificar</button>
         <p id="ml-dl-feedback"></p>
         <p id="ml-dl-timer" style="font-weight: bold; color: #ffc107;"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-sentiment" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-sentiment">Análisis de Sentimientos</h2>
+      </div>
+      <div id="minigame-content-sentiment">
+        <p>
+          El <strong>Análisis de Sentimientos</strong> es una técnica de Procesamiento de Lenguaje Natural (PLN) que determina el tono emocional de un texto.
+          Se utiliza para entender opiniones, actitudes y emociones expresadas en comentarios, reseñas o redes sociales.
+          <br /><br />
+          Para que una IA pueda hacer esto, primero se le entrena con una gran cantidad de textos ya clasificados (datos de entrenamiento).
+          Así, la IA aprende a identificar patrones y palabras clave que se asocian con cada sentimiento.
+          <br /><br />
+          Tu tarea es clasificar el sentimiento del siguiente texto como <strong>Positivo</strong>, <strong>Negativo</strong> o <strong>Neutral</strong>, pensando como lo haría una IA.
+        </p>
+        <p id="sentiment-text" style="font-size: 1.2em; font-weight: bold; margin: 20px 0;"></p>
+        <div id="sentiment-keywords" style="margin-top: 10px; font-style: italic; color: #aaa;"></div>
+        <div style="display: flex; justify-content: center; gap: 10px;">
+          <button id="sentiment-positive" class="minigame-submit-button">Positivo</button>
+          <button id="sentiment-negative" class="minigame-submit-button">Negativo</button>
+          <button id="sentiment-neutral" class="minigame-submit-button">Neutral</button>
+        </div>
+        <p id="sentiment-feedback"></p>
+        <p id="sentiment-timer" style="font-weight: bold; color: #ffc107;"></p>
       </div>
     </div>
   </div>

@@ -67,10 +67,15 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias, #minigame-title-ml-dl {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias, #minigame-title-ml-dl, #minigame-title-sentiment {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
+}
+
+/* Sentiment Minigame Styles */
+#minigame-modal-sentiment .modal-content {
+  max-width: 650px; /* Adjusted width for sentiment minigame */
 }
 
 #question, #intro-text, #minigame-content p, div[id^="minigame-content-"] p {
