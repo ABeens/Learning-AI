@@ -38,7 +38,7 @@
       </div>
       <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y
         superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío, debes descubrir
-        cuales son (son 5 en total).</p>
+        cuales son (son 7 en total).</p>
       <button id="start-game">Comenzar</button>
     </div>
   </div>
@@ -272,8 +272,7 @@
             voz</div>
           <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Aprende características directamente de
             los datos</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Algoritmos como Regresión Logística o
-            SVM</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Ideal para fraudes y spams</div>
         </div>
         <button id="ml-dl-submit" class="minigame-submit-button">Verificar</button>
         <p id="ml-dl-feedback"></p>
@@ -297,15 +296,60 @@
           <br /><br />
           Tu tarea es clasificar el sentimiento del siguiente texto como <strong>Positivo</strong>, <strong>Negativo</strong> o <strong>Neutral</strong>, pensando como lo haría una IA.
         </p>
-        <p id="sentiment-text" style="font-size: 1.2em; font-weight: bold; margin: 20px 0;"></p>
-        <div id="sentiment-keywords" style="margin-top: 10px; font-style: italic; color: #aaa;"></div>
-        <div style="display: flex; justify-content: center; gap: 10px;">
-          <button id="sentiment-positive" class="minigame-submit-button">Positivo</button>
-          <button id="sentiment-negative" class="minigame-submit-button">Negativo</button>
-          <button id="sentiment-neutral" class="minigame-submit-button">Neutral</button>
+        <div id="sentiment-keyword-section">
+          <p><strong>Paso 1: Identifica las palabras clave.</strong></p>
+          <p>¿Qué palabras o frases crees que una IA usaría para determinar el sentimiento de este texto? (Separa con comas)</p>
+          <input type="text" id="sentiment-keyword-input" class="minigame-input" placeholder="Ej: increíble, pésimo, neutral">
+          <button id="sentiment-keyword-submit" class="minigame-submit-button">Verificar Palabras Clave</button>
+          <p id="sentiment-keyword-feedback"></p>
+        </div>
+        <div id="sentiment-classification-section" style="display:none;">
+          <p><strong>Paso 2: Clasifica el sentimiento.</strong></p>
+          <p id="sentiment-text" style="font-size: 1.2em; font-weight: bold; margin: 20px 0;"></p>
+        <div id="sentiment-keyword-section">
+          <p><strong>Paso 1: Identifica las palabras clave.</strong></p>
+          <p>¿Qué palabras o frases crees que una IA usaría para determinar el sentimiento de este texto? (Separa con comas)</p>
+          <input type="text" id="sentiment-keyword-input" class="minigame-input" placeholder="Ej: increíble, pésimo, neutral">
+          <button id="sentiment-keyword-submit" class="minigame-submit-button">Verificar Palabras Clave</button>
+          <p id="sentiment-keyword-feedback"></p>
+        </div>
+        <div id="sentiment-classification-section" style="display:none;">
+          <p><strong>Paso 2: Clasifica el sentimiento.</strong></p>
+          <div id="sentiment-keywords-display" style="margin-top: 10px; font-style: italic; color: #aaa;"></div>
+          <div style="display: flex; justify-content: center; gap: 10px;">
+            <button id="sentiment-positive" class="minigame-submit-button">Positivo</button>
+            <button id="sentiment-negative" class="minigame-submit-button">Negativo</button>
+            <button id="sentiment-neutral" class="minigame-submit-button">Neutral</button>
+          </div>
+        </div>
         </div>
         <p id="sentiment-feedback"></p>
         <p id="sentiment-timer" style="font-weight: bold; color: #ffc107;"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="minigame-modal-guess-word" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="minigame-title-guess-word">Adivina la Palabra: Word Embeddings</h2>
+      </div>
+      <div id="minigame-content-guess-word">
+        <p>
+          Los <strong>Word Embeddings</strong> (vectores de palabras) son representaciones numéricas de palabras en un espacio multidimensional.
+          Su propósito principal es permitir que las IA comprendan el <strong>significado y el contexto</strong> de las palabras, algo crucial para el Procesamiento de Lenguaje Natural (PLN).
+          <br /><br />
+          A diferencia de las representaciones simples, los word embeddings capturan relaciones semánticas y sintácticas: palabras con significados similares o que aparecen en contextos parecidos están "cerca" entre sí en este espacio. Esto ayuda a la IA a realizar tareas complejas como el análisis de sentimientos o la traducción automática.
+          <br /><br />
+          A continuación, verás un grupo de palabras relacionadas semánticamente. Tu tarea es adivinar la palabra oculta que las conecta a todas, pensando en cómo una IA agruparía palabras con significados o contextos similares en su espacio de embeddings.
+        </p>
+        <div id="guess-word-related-words" style="font-size: 1.3em; font-weight: bold; margin: 20px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+          <!-- Related words will be dynamically loaded here -->
+        </div>
+        <input type="text" id="guess-word-input" class="minigame-input" placeholder="Escribe tu palabra aquí...">
+        <button id="guess-word-submit" class="minigame-submit-button">Adivinar</button>
+        <p id="guess-word-feedback" style="margin-top: 20px;"></p>
+        <p id="guess-word-timer" style="font-weight: bold; color: #ffc107;"></p>
       </div>
     </div>
   </div>

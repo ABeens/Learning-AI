@@ -45,6 +45,18 @@ class FusionWorld {
     this.sentimentNeutralBtn = document.getElementById('sentiment-neutral');
     this.sentimentFeedbackEl = document.getElementById('sentiment-feedback');
     this.sentimentTimerEl = document.getElementById('sentiment-timer');
+    this.sentimentKeywordInput = document.getElementById('sentiment-keyword-input');
+    this.sentimentKeywordSubmitBtn = document.getElementById('sentiment-keyword-submit');
+    this.sentimentKeywordFeedbackEl = document.getElementById('sentiment-keyword-feedback');
+    this.sentimentKeywordSection = document.getElementById('sentiment-keyword-section');
+    this.sentimentClassificationSection = document.getElementById('sentiment-classification-section');
+    this.sentimentKeywordsDisplay = document.getElementById('sentiment-keywords-display');
+    this.minigameModalGuessWord = document.getElementById('minigame-modal-guess-word');
+    this.guessWordRelatedWordsEl = document.getElementById('guess-word-related-words');
+    this.guessWordInput = document.getElementById('guess-word-input');
+    this.guessWordSubmitBtn = document.getElementById('guess-word-submit');
+    this.guessWordFeedbackEl = document.getElementById('guess-word-feedback');
+    this.guessWordTimerEl = document.getElementById('guess-word-timer');
     console.log('minigameModalMlDl:', this.minigameModalMlDl);
     this.rlNextStepBtn = document.getElementById('rl-next-step');
     this.rlRewardBtn = document.getElementById('rl-reward');
@@ -127,6 +139,8 @@ class FusionWorld {
     this.sentimentPositiveBtn.addEventListener('click', () => this.checkSentimentMinigame('positivo'));
     this.sentimentNegativeBtn.addEventListener('click', () => this.checkSentimentMinigame('negativo'));
     this.sentimentNeutralBtn.addEventListener('click', () => this.checkSentimentMinigame('neutral'));
+    this.sentimentKeywordSubmitBtn.addEventListener('click', () => this.checkSentimentKeywords());
+    this.guessWordSubmitBtn.addEventListener('click', () => this.checkGuessTheWordMinigame());
     this.createInteractiveObjects();
     this.initMinigame();
     this.initUnsupervisedMinigame();
@@ -178,13 +192,25 @@ class FusionWorld {
 
   createInteractiveObjects() {
     this.interactiveObjects.push({ x: 280, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
-    this.interactiveObjects.push({ x: 750, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
-    this.interactiveObjects.push({ x: 520, y: 620, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
-    this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
+    this.interactiveObjects.push({ x: 500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
+    this.interactiveObjects.push({ x: 750, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
+    this.interactiveObjects.push({ x: 520, y: 620, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
     this.interactiveObjects.push({ x: 100, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'data-relevance' });
-    this.interactiveObjects.push({ x: 1500, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'ml-vs-dl' });
-    this.interactiveObjects.push({ x: 1700, y: 300, width: 48, height: 48, type: 'minigame', minigame: 'sentiment-analysis' });
+    this.interactiveObjects.push({ x: 230, y: 220, width: 48, height: 48, type: 'minigame', minigame: 'ml-vs-dl' });
+    // this.interactiveObjects.push({ x: 1700, y: 300, width: 48, height: 48, type: 'minigame', minigame: 'sentiment-analysis' });
+    this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'guess-the-word' });
   }
+
+  //  createInteractiveObjects() {
+  //   this.interactiveObjects.push({ x: 280, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'learning-types' });
+  //   this.interactiveObjects.push({ x: 750, y: 100, width: 48, height: 48, type: 'minigame', minigame: 'unsupervised-learning' });
+  //   this.interactiveObjects.push({ x: 520, y: 620, width: 48, height: 48, type: 'minigame', minigame: 'reinforced-learning' });
+  //   this.interactiveObjects.push({ x: 1180, y: 150, width: 48, height: 48, type: 'minigame', minigame: 'cognitive-bias' });
+  //   this.interactiveObjects.push({ x: 100, y: 80, width: 48, height: 48, type: 'minigame', minigame: 'data-relevance' });
+  //   this.interactiveObjects.push({ x: 230, y: 220, width: 48, height: 48, type: 'minigame', minigame: 'ml-vs-dl' });
+  //   // this.interactiveObjects.push({ x: 1700, y: 300, width: 48, height: 48, type: 'minigame', minigame: 'sentiment-analysis' });
+  //   this.interactiveObjects.push({ x: 1800, y: 500, width: 48, height: 48, type: 'minigame', minigame: 'guess-the-word' });
+  // }
 
   handleKeys(e, isDown) {
     if (!this.gameStarted) return;
@@ -330,6 +356,7 @@ class FusionWorld {
     this.minigameModalDataBias.style.display = 'none';
     this.minigameModalMlDl.style.display = 'none';
     this.minigameModalSentiment.style.display = 'none';
+    this.minigameModalGuessWord.style.display = 'none';
     this.interactingWith = null;
   }
 
@@ -354,6 +381,7 @@ class FusionWorld {
     if (this.rlTimerEl) this.rlTimerEl.textContent = '';
     if (this.biasTimerEl) this.biasTimerEl.textContent = '';
     if (this.sentimentTimerEl) this.sentimentTimerEl.textContent = '';
+    if (this.guessWordTimerEl) this.guessWordTimerEl.textContent = '';
     if (minigame === 'learning-types') {
       this.minigameModal.style.display = 'block';
       this.snakes = [
@@ -383,6 +411,9 @@ class FusionWorld {
     } else if (minigame === 'sentiment-analysis') {
       this.minigameModalSentiment.style.display = 'block';
       this.initSentimentMinigame();
+    } else if (minigame === 'guess-the-word') {
+      this.minigameModalGuessWord.style.display = 'block';
+      this.initGuessTheWordMinigame();
     }
   }
 
@@ -912,7 +943,36 @@ class FusionWorld {
     this.currentSentimentText = this.sentimentTexts[Math.floor(Math.random() * this.sentimentTexts.length)];
     this.sentimentTextEl.textContent = `"${this.currentSentimentText.text}"`;
     this.sentimentFeedbackEl.textContent = '';
-    document.getElementById('sentiment-keywords').textContent = ''; // Clear previous keywords
+    this.sentimentKeywordInput.value = '';
+    this.sentimentKeywordFeedbackEl.textContent = '';
+    this.sentimentKeywordsDisplay.textContent = '';
+    this.sentimentKeywordSection.style.display = 'block';
+    this.sentimentClassificationSection.style.display = 'none';
+  }
+
+  checkSentimentKeywords() {
+    const userAnswer = this.sentimentKeywordInput.value.toLowerCase().split(',').map(s => s.trim()).filter(s => s.length > 0);
+    const correctKeywords = this.currentSentimentText.keywords.map(k => k.toLowerCase());
+
+    let correctCount = 0;
+    let feedbackMessage = '';
+
+    userAnswer.forEach(word => {
+      if (correctKeywords.includes(word)) {
+        correctCount++;
+      }
+    });
+
+    if (correctCount === correctKeywords.length && userAnswer.length === correctKeywords.length) {
+      feedbackMessage = `¡Excelente! Has identificado todas las palabras clave correctamente. Esto es similar a cómo una IA extrae características relevantes del texto.`;
+      this.sentimentKeywordSection.style.display = 'none';
+      this.sentimentClassificationSection.style.display = 'block';
+      this.sentimentTextEl.textContent = `"${this.currentSentimentText.text}"`;
+      this.sentimentKeywordsDisplay.textContent = `Palabras clave identificadas por la IA: ${correctKeywords.map(k => `"${k}"`).join(", ")}`;;
+    } else {
+      feedbackMessage = `No has identificado todas las palabras clave correctamente. Una IA necesita estas "pistas" para entender el texto. Intenta de nuevo.`;
+    }
+    this.sentimentKeywordFeedbackEl.textContent = feedbackMessage;
   }
 
   checkSentimentMinigame(userSentiment) {
@@ -933,7 +993,57 @@ class FusionWorld {
       feedbackMessage += ' Intenta de nuevo.';
     }
     this.sentimentFeedbackEl.textContent = feedbackMessage;
-    document.getElementById('sentiment-keywords').textContent = `Palabras clave identificadas por la IA: ${keywords.map(k => `"${k}"`).join(", ")}`;
+  }
+
+  checkSentimentMinigame(userSentiment) {
+    const correctSentiment = this.currentSentimentText.sentiment;
+    const keywords = this.currentSentimentText.keywords;
+    let feedbackMessage = '';
+
+    if (userSentiment === correctSentiment) {
+      feedbackMessage = `¡Correcto! El texto es efectivamente ${correctSentiment}.`;
+      feedbackMessage += ` Una IA, entrenada con ejemplos similares, aprende a identificar patrones. En este caso, las palabras clave como ${keywords.map(k => `"${k}"`).join(", ")} son fuertes indicadores de un sentimiento ${correctSentiment}.`;
+      feedbackMessage += ` Este proceso de reconocer palabras y frases asociadas a un sentimiento es fundamental en el PLN.`;
+      markMinigameAsCompleted('sentiment-analysis');
+      this.startMinigameTimer(this.sentimentTimerEl, 5);
+    } else {
+      feedbackMessage = `Incorrecto. El sentimiento correcto era ${correctSentiment}.`;
+      feedbackMessage += ` Una IA buscaría patrones y palabras clave como ${keywords.map(k => `"${k}"`).join(", ")}.`;
+      feedbackMessage += ` El desafío para la IA (y para ti) es aprender a distinguir estos patrones incluso con variaciones en el lenguaje.`;
+      feedbackMessage += ' Intenta de nuevo.';
+    }
+    this.sentimentFeedbackEl.textContent = feedbackMessage;
+  }
+
+  initGuessTheWordMinigame() {
+    this.wordEmbeddingPuzzles = [
+      { target: "perro", related: ["cachorro", "ladrar", "mascota", "canino"], explanation: "Todas estas palabras están relacionadas con el concepto de 'perro'. En un espacio de word embeddings, estas palabras estarían muy cerca unas de otras, formando un 'cluster' semántico." },
+      { target: "computadora", related: ["teclado", "ratón", "monitor", "software"], explanation: "Estos términos son componentes o conceptos asociados a una 'computadora'. Una IA agruparía estas palabras porque a menudo aparecen en contextos similares." },
+    ];
+    this.currentPuzzle = this.wordEmbeddingPuzzles[Math.floor(Math.random() * this.wordEmbeddingPuzzles.length)];
+
+    this.guessWordRelatedWordsEl.innerHTML = '';
+    this.currentPuzzle.related.forEach(word => {
+      const span = document.createElement('span');
+      span.textContent = word;
+      this.guessWordRelatedWordsEl.appendChild(span);
+    });
+
+    this.guessWordInput.value = '';
+    this.guessWordFeedbackEl.textContent = '';
+  }
+
+  checkGuessTheWordMinigame() {
+    const userAnswer = this.guessWordInput.value.toLowerCase().trim();
+    const correctWord = this.currentPuzzle.target.toLowerCase();
+
+    if (userAnswer === correctWord) {
+      this.guessWordFeedbackEl.textContent = `¡Correcto! La palabra oculta era "${correctWord}". ${this.currentPuzzle.explanation} ¡Minijuego completado!`;
+      markMinigameAsCompleted('guess-the-word');
+      this.startMinigameTimer(this.guessWordTimerEl, 5);
+    } else {
+      this.guessWordFeedbackEl.textContent = `Incorrecto. La palabra "${userAnswer}" no es la que buscamos. Intenta pensar en un concepto que englobe a todas las palabras mostradas.`;
+    }
   }
 
   draw() {
@@ -957,17 +1067,17 @@ class FusionWorld {
     }
 
     // Draw interactive objects relative to camera
-    this.interactiveObjects.forEach(obj => {
-      if (this.interactiveObjectSprite) {
-        this.ctx.drawImage(
-          this.interactiveObjectSprite,
-          obj.x - this.camera.x,
-          obj.y - this.camera.y,
-          obj.width,
-          obj.height
-        );
-      }
-    });
+    // this.interactiveObjects.forEach(obj => {
+    //   if (this.interactiveObjectSprite) {
+    //     this.ctx.drawImage(
+    //       this.interactiveObjectSprite,
+    //       obj.x - this.camera.x,
+    //       obj.y - this.camera.y,
+    //       obj.width,
+    //       obj.height
+    //     );
+    //   }
+    // });
 
     // Draw Player Sprite relative to camera
     const spriteToUse = this.player.isMoving ? this.player.runSprite : this.player.sprite;

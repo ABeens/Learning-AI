@@ -67,7 +67,7 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias, #minigame-title-ml-dl, #minigame-title-sentiment {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias, #minigame-title-ml-dl, #minigame-title-sentiment, #minigame-title-guess-word {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
@@ -76,6 +76,19 @@ body {
 /* Sentiment Minigame Styles */
 #minigame-modal-sentiment .modal-content {
   max-width: 650px; /* Adjusted width for sentiment minigame */
+}
+
+/* Guess the Word Minigame Styles */
+#minigame-modal-guess-word .modal-content {
+  max-width: 700px; /* Adjusted width for guess the word minigame */
+}
+
+#guess-word-related-words span {
+  background-color: #4a4a4a;
+  padding: 8px 15px;
+  border-radius: 5px;
+  margin: 5px;
+  display: inline-block;
 }
 
 #question, #intro-text, #minigame-content p, div[id^="minigame-content-"] p {
