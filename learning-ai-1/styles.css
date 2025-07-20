@@ -40,7 +40,7 @@ body {
   position: relative;
   background: #333;
   color: #fff;
-  margin: 5% auto;
+  margin: 2% auto;
   padding: 0;
   padding-bottom: 20px;
   border: 2px solid #555;
@@ -67,16 +67,17 @@ body {
   border-bottom: 2px solid #555;
 }
 
-#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias {
+#question-title, #intro-title, #minigame-title, #minigame-title-unsupervised, #minigame-title-reinforced, #minigame-title-bias, #minigame-title-data-bias, #minigame-title-ml-dl {
   margin: 0;
   font-size: 1.5em;
   color: #ffc107; /* Gold color for title */
 }
 
-#question, #intro-text {
+#question, #intro-text, #minigame-content p, div[id^="minigame-content-"] p {
     padding: 20px;
-    font-size: 1.2em;
+    font-size: 1em;
     line-height: 1.6;
+    text-align: justify;
 }
 
 #answer, #snake-answer, .minigame-input {
@@ -237,6 +238,10 @@ body {
 }
 
 /* ML vs DL Minigame Styles */
+#minigame-modal-ml-dl .modal-content {
+  max-width: 800px; /* Increased width for more characters */
+}
+
 #ml-dl-minigame-columns {
   display: flex;
   justify-content: space-around;
@@ -273,4 +278,4 @@ body {
 .ml-dl-minigame-option:hover {
   background-color: #5a5a5a;
 }
-}
+

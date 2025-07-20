@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Fusion World - Canvas Adventure</title>
   <link href="styles.css" rel="stylesheet" type="text/css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
   <h1>Fusion World</h1>
   <div id="game-container">
@@ -24,7 +26,8 @@
     <p>Por favor, accede desde un dispositivo con una pantalla más grande para una mejor experiencia.</p>
   </div>
 
-  <div id="minigame-counter" style="position: absolute; top: 10px; left: 10px; color: white; font-size: 1.2em; background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;">
+  <div id="minigame-counter"
+    style="position: absolute; top: 10px; left: 10px; color: white; font-size: 1.2em; background-color: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;">
     Minijuegos Completados: 0/6
   </div>
 
@@ -33,7 +36,9 @@
       <div class="modal-header">
         <h2 id="intro-title">Bienvenido a las oficinas de Fusion HIT</h2>
       </div>
-      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío, debes descubrir cuales son (son 5 en total).</p>
+      <p id="intro-text">Estás a punto de embarcarte en un viaje a través del camino de la IA. Prepárate para aprender y
+        superar los desafíos que te esperan. Interactúa con los personajes para conseguir cada desafío, debes descubrir
+        cuales son (son 5 en total).</p>
       <button id="start-game">Comenzar</button>
     </div>
   </div>
@@ -56,7 +61,9 @@
         <h2 id="minigame-title">Aprendizaje Supervisado</h2>
       </div>
       <div id="minigame-content">
-        <p>El aprendizaje supervisado es un tipo de inteligencia artificial en el que un modelo aprende a partir de datos que ya han sido etiquetados (tienen sus entredas y salidas claras). En este juego, tú harías el papel de la IA, tendrías los datos etiquetados y en base a eso inferirás los resultados.</p>
+        <p>El aprendizaje supervisado es un tipo de inteligencia artificial en el que un modelo aprende a partir de
+          datos que ya han sido etiquetados (tienen sus entredas y salidas claras). En este juego, tú harías el papel de
+          la IA, tendrías los datos etiquetados y en base a eso inferirás los resultados.</p>
         <div id="snake-characteristics">
           <h3>Tabla de Características de Serpientes</h3>
           <table id="snake-table">
@@ -104,8 +111,12 @@
         <h2 id="minigame-title-unsupervised">Aprendizaje No Supervisado</h2>
       </div>
       <div id="minigame-content-unsupervised">
-        <p>El aprendizaje no supervisado es un tipo de IA donde el modelo busca patrones en datos que no han sido etiquetados. A diferencia del aprendizaje supervisado, no se le dice al modelo cuál es la "respuesta correcta". En este juego, tu tarea es encontrar el patrón y clasificar los elementos en grupos.</p>
-        <p>Clasifica las siguientes razas de perros en dos grupos:</p>
+        <p>El aprendizaje no supervisado es un tipo de IA donde el modelo busca patrones en datos que no han sido
+          etiquetados. A diferencia del aprendizaje supervisado, no se le dice al modelo cuál es la "respuesta
+          correcta". En este juego, tu tarea es encontrar el patrón y clasificar los elementos en grupos.
+          <br /><br />
+          Clasifica las siguientes razas de perros en dos grupos:
+        </p>
         <div id="dog-minigame-columns">
           <div class="dog-minigame-column">
             <h3>Grupo 1</h3>
@@ -137,11 +148,14 @@
         <h2 id="minigame-title-reinforced">Aprendizaje por Refuerzo</h2>
       </div>
       <div id="minigame-content-reinforced">
-        <p>El aprendizaje por refuerzo es un tipo de IA donde un agente aprende a tomar decisiones interactuando con un entorno, recibiendo recompensas o castigos. Ayuda al robot a encontrar el camino.</p>
-        <canvas id="reinforced-learning-canvas" width="300" height="300" style="border: 2px solid #555; background-color: #2a2a2a;"></canvas>
+        <p>El aprendizaje por refuerzo es un tipo de IA donde un agente aprende a tomar decisiones interactuando con un
+          entorno, recibiendo recompensas o castigos. Ayuda al robot a encontrar el camino.</p>
+        <canvas id="reinforced-learning-canvas" width="300" height="300"
+          style="border: 2px solid #555; background-color: #2a2a2a;"></canvas>
         <div style="margin-top: 10px;">
           <button id="rl-next-step" class="minigame-submit-button">Mover robot</button>
-          <button id="rl-reward" class="minigame-submit-button" style="background-color: #28a745;">Recompensa (+)</button>
+          <button id="rl-reward" class="minigame-submit-button" style="background-color: #28a745;">Recompensa
+            (+)</button>
           <button id="rl-punish" class="minigame-submit-button" style="background-color: #dc3545;">Castigo (-)</button>
         </div>
         <p id="rl-feedback"></p>
@@ -157,11 +171,20 @@
         <h2 id="minigame-title-bias">Sesgo Cognitivo: Sesgo de Confirmación</h2>
       </div>
       <div id="minigame-content-bias">
-        <p>El <strong>sesgo en la IA</strong> se refiere a situaciones en las que un sistema de inteligencia artificial produce resultados que son injustos, discriminatorios o inexactos debido a suposiciones erróneas en el proceso de aprendizaje. Estos sesgos pueden originarse en los datos de entrenamiento, en el diseño del algoritmo o en la forma en que se interpreta la información.</p>
-        <p>En este minijuego, experimentarás el <strong>Sesgo de Anclaje</strong>. Un número inicial (el "ancla"), incluso si es irrelevante, puede influir en tu estimación posterior.</p>
-        <p><strong>Pregunta:</strong> ¿Cuántos volcanes activos hay en el mundo?</p>
-        <p style="font-size: 1.5em; font-weight: bold; color: #ffc107;">¿Es más o menos de <span id="anchor-value">X</span>?</p>
-        <p>Tu estimación:</p>
+        <p>El <strong>sesgo en la IA</strong> se refiere a situaciones en las que un sistema de inteligencia artificial
+          produce resultados que son injustos, discriminatorios o inexactos debido a suposiciones erróneas en el proceso
+          de aprendizaje. Estos sesgos pueden originarse en los datos de entrenamiento, en el diseño del algoritmo o en
+          la forma en que se interpreta la información.
+          <br /><br />En este minijuego, experimentarás el <strong>Sesgo de Anclaje</strong>. Un número inicial (el
+          "ancla"), incluso si es irrelevante, puede influir en tu estimación posterior.
+          <br /><br />
+          <strong>Pregunta:</strong> ¿Cuántos volcanes activos hay en el mundo?
+          <br /><br />
+          <span style="font-size: 1.5em; font-weight: bold; color: #ffc107;">¿Es más o menos de <span
+              id="anchor-value">X</span>?</span>
+          <br /><br />
+          Tu estimación:
+        </p>
         <input type="number" id="bias-estimate" placeholder="Introduce tu número aquí..." class="minigame-input">
         <button id="bias-submit" class="minigame-submit-button">Estimar</button>
         <p id="bias-feedback"></p>
@@ -176,8 +199,10 @@
         <h2 id="minigame-title-data-bias">Importancia de los datos en la IA</h2>
       </div>
       <div id="minigame-content-data-bias">
-        <p>El primer paso y más importante para entrenar una IA es seleccionar los datos correctos. La calidad y relevancia de tus datos determinarán el éxito de tu modelo.</p>
-        <p>Imagina que estás construyendo un modelo de IA para predecir el precio de una casa. Arrastra los conjuntos de datos más RELEVANTES a la caja de 'Datos Relevantes' y los menos relevantes a la caja de 'Datos Irrelevantes'.</p>
+        <p>El primer paso y más importante para entrenar una IA es seleccionar los datos correctos. La calidad y
+          relevancia de tus datos determinarán el éxito de tu modelo. <br /><br />Imagina que estás construyendo un
+          modelo de IA para predecir el precio de una casa. Arrastra los conjuntos de datos más RELEVANTES a la caja de
+          'Datos Relevantes' y los menos relevantes a la caja de 'Datos Irrelevantes'.</p>
         <div id="data-relevance-columns">
           <div class="data-relevance-column">
             <h3>Datos Relevantes</h3>
@@ -189,14 +214,22 @@
           </div>
         </div>
         <div id="data-relevance-options">
-          <div id="data-1" class="data-relevance-option" draggable="true" data-type="relevant">Tamaño de la casa (m² o ft²)</div>
-          <div id="data-2" class="data-relevance-option" draggable="true" data-type="irrelevant">Color de la puerta principal</div>
-          <div id="data-3" class="data-relevance-option" draggable="true" data-type="relevant">Número de habitaciones</div>
-          <div id="data-4" class="data-relevance-option" draggable="true" data-type="irrelevant">Marca del coche del vecino</div>
-          <div id="data-5" class="data-relevance-option" draggable="true" data-type="relevant">Ubicación (código postal, barrio)</div>
-          <div id="data-6" class="data-relevance-option" draggable="true" data-type="irrelevant">Clima del día de la venta</div>
-          <div id="data-7" class="data-relevance-option" draggable="true" data-type="relevant">Antigüedad de la casa (años)</div>
-          <div id="data-8" class="data-relevance-option" draggable="true" data-type="irrelevant">Nombre del propietario anterior</div>
+          <div id="data-1" class="data-relevance-option" draggable="true" data-type="relevant">Tamaño de la casa (m² o
+            ft²)</div>
+          <div id="data-2" class="data-relevance-option" draggable="true" data-type="irrelevant">Color de la puerta
+            principal</div>
+          <div id="data-3" class="data-relevance-option" draggable="true" data-type="relevant">Número de habitaciones
+          </div>
+          <div id="data-4" class="data-relevance-option" draggable="true" data-type="irrelevant">Marca del coche del
+            vecino</div>
+          <div id="data-5" class="data-relevance-option" draggable="true" data-type="relevant">Ubicación (código postal,
+            barrio)</div>
+          <div id="data-6" class="data-relevance-option" draggable="true" data-type="irrelevant">Clima del día de la
+            venta</div>
+          <div id="data-7" class="data-relevance-option" draggable="true" data-type="relevant">Antigüedad de la casa
+            (años)</div>
+          <div id="data-8" class="data-relevance-option" draggable="true" data-type="irrelevant">Nombre del propietario
+            anterior</div>
         </div>
         <button id="data-relevance-submit" class="minigame-submit-button">Verificar</button>
         <p id="data-relevance-feedback"></p>
@@ -211,7 +244,13 @@
         <h2 id="minigame-title-ml-dl">Machine Learning vs. Deep Learning</h2>
       </div>
       <div id="minigame-content-ml-dl">
-        <p>Clasifica las siguientes características en la categoría correcta. El <strong>Machine Learning</strong> a menudo requiere extracción manual de características, mientras que el <strong>Deep Learning</strong> (un subcampo del ML) puede aprender esas características por sí mismo a través de redes neuronales profundas.</p>
+      <p>
+        <strong>Machine Learning (ML)</strong> y <strong>Deep Learning (DL)</strong> son técnicas de inteligencia artificial, pero tienen diferencias clave.<br>
+        ML requiere que los humanos seleccionen manualmente las características importantes del dato, mientras que DL aprende esas características automáticamente usando redes neuronales profundas.<br>
+        ML funciona bien con menos datos y es más rápido de entrenar, además de ser más fácil de interpretar.<br>
+        En cambio, DL necesita grandes cantidades de datos y más capacidad computacional, pero suele lograr mejores resultados en tareas complejas como imágenes, voz o texto.<br>
+        En resumen, ML es más ligero y explicable, mientras que DL es más potente y automatizado.
+      </p>
         <div id="ml-dl-minigame-columns">
           <div class="ml-dl-minigame-column">
             <h3>Grupo 1</h3>
@@ -223,12 +262,18 @@
           </div>
         </div>
         <div id="ml-dl-minigame-options">
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Requiere intervención humana para seleccionar características</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Usa redes neuronales con muchas capas</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Funciona bien con datos estructurados y de menor volumen</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Ideal para reconocimiento de imágenes y voz</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Aprende características directamente de los datos</div>
-          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Algoritmos como Regresión Logística o SVM</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Requiere intervención humana para
+            seleccionar características</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Usa redes neuronales con muchas capas
+          </div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Funciona bien con datos estructurados y
+            de menor volumen</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Ideal para reconocimiento de imágenes y
+            voz</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type2">Aprende características directamente de
+            los datos</div>
+          <div class="ml-dl-minigame-option" draggable="true" data-type="type1">Algoritmos como Regresión Logística o
+            SVM</div>
         </div>
         <button id="ml-dl-submit" class="minigame-submit-button">Verificar</button>
         <p id="ml-dl-feedback"></p>
@@ -240,4 +285,5 @@
   <script type="module" src="fusion-world.js"></script>
   <script type="module" src="init.js"></script>
 </body>
+
 </html>
